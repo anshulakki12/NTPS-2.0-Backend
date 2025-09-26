@@ -1,0 +1,162 @@
+<div class="form-wrapper">
+  <mat-card class="modern-card">
+
+    <!-- Top Row Headings -->
+    <div class="card-content" style="margin-bottom: 10px;">
+      <div class="side-top-header">
+        <h3 class="section-title">Instructions</h3>
+      </div>
+      <div class="applicant-top-header">
+        <h2 class="section-title">Applicant Details</h2>
+      </div>
+    </div>
+
+    <div class="card-content">
+      <!-- Instructions -->
+      <div class="instructions">
+        <ul>
+          <li>Fill the Correct Login Credentials and Captcha.</li>
+          <li>The Link <strong>"New Applicant Registration"</strong> is for registration of new Applicant / user.</li>
+          <li>The Link <strong>"Reactivate Verification"</strong> is for activation of the Login, if it has not been activated during registration.</li>
+          <li>The Link <strong>"Officer Login Activation"</strong> is for Activating the Officer User ID as per the registered mobile id.</li>
+          <li>The Link <strong>"Forgot Password?"</strong> is to Reset the Password in case if user forgets the password.</li>
+        </ul>
+      </div>
+
+      <!-- Applicant Details Form -->
+      <form class="details-form" [formGroup]="detailsForm" (ngSubmit)="onSubmit()">
+
+        <!-- Title + Name -->
+        <div class="form-row">
+          <mat-form-field appearance="outline" class="form-field short">
+            <mat-label>Title</mat-label>
+            <mat-select formControlName="title">
+              <mat-option value="Mr.">Mr.</mat-option>
+              <mat-option value="Mrs.">Mrs.</mat-option>
+              <mat-option value="Ms.">Ms.</mat-option>
+              <mat-option value="M/s.">M/s.</mat-option>
+            </mat-select>
+          </mat-form-field>
+
+          <mat-form-field appearance="outline" class="form-field long">
+            <mat-label>Name</mat-label>
+            <input matInput type="text" formControlName="name" placeholder="Enter Full Name" />
+          </mat-form-field>
+        </div>
+
+        <!-- Mobile + Email -->
+        <div class="form-row">
+          <mat-form-field appearance="outline" class="form-field mobile-field">
+            <mat-label>Mobile Number</mat-label>
+            <input matInput maxlength="10" formControlName="mobile" />
+          </mat-form-field>
+
+          <mat-form-field appearance="outline" class="form-field email-field">
+            <mat-label>Email Id</mat-label>
+            <input matInput type="email" formControlName="email" placeholder="Enter Email" />
+          </mat-form-field>
+        </div>
+
+        <!-- Identity Proof + Number -->
+        <div class="form-row">
+          <mat-form-field appearance="outline" class="form-field">
+            <mat-label>Identity Proof</mat-label>
+            <mat-select formControlName="identityProof">
+              <mat-option [value]="IdentityProof.PAN">PAN Card</mat-option>
+              <mat-option [value]="IdentityProof.VoterID">Voter ID Card</mat-option>
+              <mat-option [value]="IdentityProof.DL">Driving Licence</mat-option>
+              <mat-option [value]="IdentityProof.Ration">Ration Card</mat-option>
+              <mat-option [value]="IdentityProof.Aadhar">Aadhar Card</mat-option>
+            </mat-select>
+          </mat-form-field>
+          
+          
+          <mat-form-field appearance="outline" class="form-field">
+            <mat-label>Unique Number of Identity Proof</mat-label>
+            <input matInput formControlName="identityNumber" placeholder="Enter Identity Number" maxlength="12" minlength="12"
+              pattern="[0-9]{12}" (blur)="fetchAadhaarDetails()" />
+            <mat-hint align="end" *ngIf="detailsForm.get('identityProof')?.value === IdentityProof.Aadhar">
+              Enter 12-digit Aadhaar number
+            </mat-hint>
+          
+          </mat-form-field>
+          </div>
+
+        <!-- Upload -->
+        <div class="upload-box" *ngIf="detailsForm.get('identityProof')?.value !== IdentityProof.Aadhar">
+          <p class="upload-text">Upload Photo Identity Card (PDF, Max 2MB)*</p>
+          <input type="file" accept="application/pdf" (change)="onFileSelected($event)" />
+          <span class="error-text" *ngIf="fileError">{{ fileError }}</span>
+        </div>
+
+        <!-- State + Circle -->
+        <div class="form-row">
+          <mat-form-field appearance="outline" class="form-field">
+            <mat-label>State</mat-label>
+            <mat-select formControlName="state">
+              @for (st of states; track st.stateId) {
+              <mat-option [value]="st.stateId">{{ st.stateName }}</mat-option>
+              }
+            </mat-select>
+          </mat-form-field>
+
+          <mat-form-field appearance="outline" class="form-field">
+            <mat-label>Circle</mat-label>
+            <mat-select formControlName="circle" (selectionChange)="onCircleChange($event.value)">
+              @for (circle of circles; track circle.circleId) {
+                <mat-option [value]="circle.circleId">{{ circle.circleName }}</mat-option>
+              }
+            </mat-select>
+          </mat-form-field>
+        </div>
+
+        <!-- Division + Range -->
+        <div class="form-row">
+          <mat-form-field appearance="outline" class="form-field">
+            <mat-label>Division</mat-label>
+            <mat-select formControlName="division" (selectionChange)="onDivisionChange($event.value)">
+              @for (d of divisions; track d.divisionId) {
+                <mat-option [value]="d.divisionId">{{ d.divisionName }}</mat-option>
+              }
+            </mat-select>
+          </mat-form-field>
+
+          <mat-form-field appearance="outline" class="form-field">
+            <mat-label>Range</mat-label>
+            <mat-select formControlName="range">
+              @for (r of ranges; track r.rangeId) {
+                <mat-option [value]="r.rangeId">{{ r.rangeName }}</mat-option>
+              }
+            </mat-select>
+          </mat-form-field>
+        </div>
+
+        <!-- Address + Pincode -->
+        <div class="form-row address-row">
+          <mat-form-field appearance="outline" class="form-field address-field">
+            <mat-label>Address</mat-label>
+            <textarea matInput [maxLength]="maxCommentLength" formControlName="address"
+              class="txtAAddress" placeholder="Enter Address"></textarea>
+            <mat-hint align="end" class="char-counter">
+              {{maxCommentLength - (detailsForm.get('address')?.value?.length || 0)}}/200
+            </mat-hint>
+          </mat-form-field>
+
+          <mat-form-field appearance="outline" class="form-field pincode-field">
+            <mat-label>Pincode</mat-label>
+            <input matInput formControlName="pincode" maxlength="6" />
+          </mat-form-field>
+        </div>
+
+        <!-- Buttons -->
+        <div class="action-row">
+          <button mat-stroked-button color="primary" type="button">Cancel</button>
+          <div class="form-actions-right">
+            <button mat-stroked-button type="button" (click)="onClear()">Reset</button>
+            <button mat-flat-button color="primary" type="submit">Save</button>
+          </div>
+        </div>
+      </form>
+    </div>
+  </mat-card>
+</div>

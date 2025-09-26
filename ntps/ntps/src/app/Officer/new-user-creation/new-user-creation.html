@@ -1,0 +1,60 @@
+<div class="container">
+<!-- Back Button -->
+<button mat-stroked-button class="back-button" (click)="goBack()">
+  <mat-icon>arrow_back</mat-icon> Back
+</button>
+  <!-- Instructions Column -->
+  <div class="instructions-card">
+    <h3>Instructions</h3>
+    <mat-divider></mat-divider>
+    <ol class="instruction-list">
+      <li>Enter the Mobile id registered with the system.</li>
+      <li>Enter Captcha.</li>
+      <li>An OTP will be sent to the registered mobile number, OTP will remain valid for 10 minutes for Verification and Completion of the registration process.</li>
+      <li>Only 3 attempts are allowed for filling OTP.</li>
+      <li>Once the OTP is verified, the login id will be visible on the screen.</li>
+    </ol>
+  </div>
+
+  <!-- Login Form -->
+  <mat-card class="login-box">
+    <h2 class="form-heading">Officer Login Activation</h2>
+
+    <form [formGroup]="regenForm" (ngSubmit)="onSubmit()">
+
+      <!-- Login ID -->
+      <mat-form-field appearance="fill" class="form-field full-width">
+        <mat-label>Login ID</mat-label>
+        <input matInput formControlName="loginId" placeholder="Enter Login ID" />
+        <mat-error *ngIf="regenForm.get('loginId')?.invalid && regenForm.get('loginId')?.touched">
+          Login ID is required
+        </mat-error>
+      </mat-form-field>
+
+      <!-- Captcha -->
+      <div class="form-row">
+        <div class="captcha-box">
+          <label class="captcha-label">Captcha</label>
+          <div class="captcha-img">{{ captcha }}</div>
+          <button mat-icon-button type="button" (click)="refreshCaptcha()" aria-label="Refresh Captcha">
+            <mat-icon>refresh</mat-icon>
+          </button>
+        </div>
+
+        <mat-form-field appearance="fill" class="form-field full-width">
+          <mat-label>Enter Captcha</mat-label>
+          <input matInput formControlName="captchaInput" placeholder="Enter Captcha" />
+          <mat-error *ngIf="regenForm.get('captchaInput')?.invalid && regenForm.get('captchaInput')?.touched">
+            Captcha is required
+          </mat-error>
+        </mat-form-field>
+      </div>
+
+      <!-- Submit -->
+      <div class="action-row">
+        <button mat-raised-button color="primary" type="submit">Submit</button>
+      </div>
+    </form>
+  </mat-card>
+
+</div>

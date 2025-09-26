@@ -1,0 +1,48 @@
+.back-button-top-right {
+  position: absolute;
+  top: 24px;
+  right: 24px;
+  z-index: 10;
+}
+
+.page-wrapper {
+  display: flex;
+  justify-content: center;
+  padding: 80px 24px 40px;
+  position: relative;
+}
+
+.aboutntps-box {
+  max-width: 900px;
+  background: #ffffff;
+  border-left: 6px solid #0b4f6c;
+  border-radius: 6px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+  padding: 32px;
+  font-family: 'Roboto', 'Segoe UI', sans-serif;
+  color: #333;
+  font-size: 14px;
+  line-height: 1.8;
+
+  h2 {
+    margin-bottom: 16px;
+    font-size: 24px;
+    color: #0b4f6c;
+  }
+
+  h3 {
+    margin-top: 32px;
+    margin-bottom: 16px;
+    font-size: 18px;
+    color: #0b4f6c;
+  }
+
+  ul {
+    list-style: disc;
+    padding-left: 20px;
+
+    li {
+      margin-bottom: 10px;
+    }
+  }
+}

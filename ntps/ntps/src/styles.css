@@ -1,0 +1,31 @@
+/* You can add global styles to this file, and also import other style files */
+@import "@angular/material/prebuilt-themes/indigo-pink.css";
+/* ===========================
+/* ===========================
+   Content Offset (avoid overlay)
+=========================== */
+:root {
+  --header-total-height: 100px; /* adjust until content sits snugly */
+}
+main, .page-content {
+  margin-top: var(--header-total-height);
+}
+
+/* Keep header fixed at top */
+app-ntps-header-navigation {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  z-index: 1000;
+}
+
+/* Push all routed pages below the header */
+.main-content {
+  margin-top: var(--header-total-height);
+  padding: 20px;
+  min-height: calc(100vh - var(--header-total-height));
+  box-sizing: border-box;
+  background: #fff;
+}
+

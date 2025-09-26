@@ -1,0 +1,192 @@
+/* ===== Wrapper ===== */
+.form-wrapper {
+  display: flex;
+  justify-content: center;
+  padding: 30px 15px;
+  background: #f5f6f7;
+}
+
+/* ===== Card ===== */
+.modern-card {
+  width: 100%;
+  max-width: 1100px;
+  background: #fff;
+  border-radius: 16px;
+  padding: 24px 28px;
+  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.08);
+  border: 1px solid #e5e7eb;
+  font-family: "Karla", sans-serif;
+}
+
+.side-top-header {
+  flex: 0 0 240px;
+  display: flex;
+  align-items: center;
+}
+
+.applicant-top-header {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.section-title {
+  font-size: 22px;
+  font-weight: 600;
+  color: #0b4f6c;
+  margin: 0;
+}
+
+/* ===== Content Layout ===== */
+.card-content {
+  display: flex;
+  gap: 30px;
+}
+
+/* Instructions Box */
+.instructions {
+  flex: 0 0 240px;
+  font-size: 12px;
+  color: #374151;
+  background: #f9fafb;
+  padding: 14px;
+  border-radius: 10px;
+  border: 1px solid #e5e7eb;
+  height: fit-content;
+}
+
+.instructions ul {
+  padding-left: 18px;
+  margin: 0;
+  line-height: 1.5;
+}
+
+/* Form Area */
+.details-form {
+  flex: 1;
+}
+
+/* ===== Compact Form Fields ===== */
+mat-form-field {
+  width: 100%;
+  --mat-form-field-container-height: 36px;
+  --mat-form-field-container-vertical-padding: 4px;
+  --mat-form-field-container-horizontal-padding: 6px;
+}
+
+.mat-mdc-input-element,
+.mat-mdc-floating-label,
+.mat-mdc-select-value-text,
+textarea {
+  font-size: 12px !important;
+}
+
+/* ===== Rows ===== */
+.form-row {
+  display: flex;
+  gap: 14px;
+  margin-bottom: 12px;
+  flex-wrap: nowrap;
+}
+
+.form-field {
+  flex: 1;
+}
+
+.form-field.short {
+  flex: 0 0 120px;
+}
+
+.form-field.long {
+  flex: 1;
+}
+
+/* Mobile + Email */
+.mobile-field {
+  flex: 0 0 40%;
+}
+
+/* Address + Pincode */
+.address-row {
+  display: flex;
+  gap: 14px;
+  flex-wrap: nowrap;
+}
+
+.address-field {
+  flex: 0 0 70%;
+}
+
+textarea.mat-mdc-input-element {
+  min-height: 50px;
+  resize: vertical;
+}
+
+/* Character counter */
+.char-counter {
+  font-size: 11px !important;
+  color: #6b7280;
+  margin-top: 2px;
+}
+
+/* ===== Upload Section ===== */
+.upload-box {
+  border: 2px dashed #d1d5db;
+  border-radius: 10px;
+  padding: 14px;
+  text-align: center;
+  margin: 14px 0;
+  background: #fafafa;
+  font-size: 12px;
+}
+
+.upload-box:hover {
+  border-color: #0b4f6c;
+  background: #f9fafb;
+}
+
+.upload-text {
+  font-size: 12px;
+  margin-bottom: 6px;
+  color: #374151;
+}
+
+/* ===== Buttons ===== */
+.action-row {
+  display: flex;
+  justify-content: space-between;
+  margin-top: 18px;
+}
+
+.form-actions-right {
+  display: flex;
+  gap: 8px;
+}
+
+button[mat-flat-button],
+button[mat-stroked-button] {
+  font-size: 12px !important;
+  padding: 2px 12px !important;
+  min-height: 30px !important;
+  border-radius: 6px !important;
+}
+
+/* ===== Responsive ===== */
+@media (max-width: 900px) {
+  .card-content {
+    flex-direction: column;
+  }
+
+  .instructions {
+    width: 100%;
+  }
+
+  .form-row {
+    flex-wrap: wrap;
+  }
+
+  .address-row {
+    flex-wrap: nowrap !important;
+  }
+}
