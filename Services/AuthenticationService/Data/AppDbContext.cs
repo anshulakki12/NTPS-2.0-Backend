@@ -1,4 +1,5 @@
-﻿using AuthenticationService.Models;
+﻿using ApplicantAuthenticationService.Models;
+using AuthenticationService.Models;
 using Microsoft.EntityFrameworkCore;
 
 namespace AuthenticationService.Data
@@ -10,9 +11,11 @@ namespace AuthenticationService.Data
         }
 
         // This tells EF Core you have a table called MasterRegistration
-        public DbSet<MasterRegistration> MasterRegistrations { get; set; }
+        public DbSet<ApplicantRegistration> MasterRegistrations { get; set; }
 
         public DbSet<VerifyOtp> VerifyOtps { get; set; }
         public DbSet<ApplicantPersonalDetails> ApplicantPersonalDetails { get; set; }
+        public DbSet<PasswordHistory> PasswordHistory { get; set; }
+        public DbSet<ApplicantResourceCollection> ResourceCollection => Set<ApplicantResourceCollection>();
     }
 }

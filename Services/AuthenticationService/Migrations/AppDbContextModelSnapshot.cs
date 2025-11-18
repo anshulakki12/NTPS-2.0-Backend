@@ -22,6 +22,78 @@ namespace AuthenticationService.Migrations
 
             SqlServerModelBuilderExtensions.UseIdentityColumns(modelBuilder);
 
+            modelBuilder.Entity("ApplicantAuthenticationService.Models.ApplicantResourceCollection", b =>
+                {
+                    b.Property<long>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bigint")
+                        .HasColumnName("Resource_id");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<long>("Id"));
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("Culture")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("PageOrModule")
+                        .HasColumnType("nvarchar(max)")
+                        .HasColumnName("Page_Or_Module");
+
+                    b.Property<string>("ResourceKey")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)")
+                        .HasColumnName("Resource_Key");
+
+                    b.Property<string>("ResourceValue")
+                        .HasColumnType("nvarchar(max)")
+                        .HasColumnName("Resource_Value");
+
+                    b.Property<string>("ServiceName")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)")
+                        .HasColumnName("Service_Name");
+
+                    b.Property<DateTime>("UpdatedAt")
+                        .HasColumnType("datetime2");
+
+                    b.HasKey("Id");
+
+                    b.ToTable("Applicant_Resource_Collection", (string)null);
+                });
+
+            modelBuilder.Entity("ApplicantAuthenticationService.Models.PasswordHistory", b =>
+                {
+                    b.Property<int>("HistoryId")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int")
+                        .HasColumnName("History_id");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("HistoryId"));
+
+                    b.Property<DateTime>("CreatedDate")
+                        .HasColumnType("datetime")
+                        .HasColumnName("Created_Date");
+
+                    b.Property<string>("LoginId")
+                        .IsRequired()
+                        .HasMaxLength(50)
+                        .HasColumnType("nvarchar(50)")
+                        .HasColumnName("Login_Id");
+
+                    b.Property<string>("PasswordHash")
+                        .IsRequired()
+                        .HasMaxLength(256)
+                        .HasColumnType("nvarchar(256)")
+                        .HasColumnName("Password_Hash");
+
+                    b.HasKey("HistoryId");
+
+                    b.ToTable("Password_History", (string)null);
+                });
+
             modelBuilder.Entity("AuthenticationService.Models.ApplicantPersonalDetails", b =>
                 {
                     b.Property<int>("DetailsId")
@@ -32,7 +104,9 @@ namespace AuthenticationService.Migrations
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("DetailsId"));
 
                     b.Property<string>("Address")
-                        .HasColumnType("nvarchar(max)")
+                        .IsRequired()
+                        .HasMaxLength(250)
+                        .HasColumnType("nvarchar(250)")
                         .HasColumnName("Address");
 
                     b.Property<int?>("CircleId")
@@ -40,7 +114,7 @@ namespace AuthenticationService.Migrations
                         .HasColumnName("Circle_id");
 
                     b.Property<DateTime?>("CreatedDate")
-                        .HasColumnType("datetime2")
+                        .HasColumnType("datetime")
                         .HasColumnName("Created_Date");
 
                     b.Property<int?>("DivisionId")
@@ -48,11 +122,15 @@ namespace AuthenticationService.Migrations
                         .HasColumnName("Division_id");
 
                     b.Property<string>("Email")
-                        .HasColumnType("nvarchar(max)")
+                        .IsRequired()
+                        .HasMaxLength(150)
+                        .HasColumnType("nvarchar(150)")
                         .HasColumnName("Email");
 
                     b.Property<string>("IDNumber")
-                        .HasColumnType("nvarchar(max)")
+                        .IsRequired()
+                        .HasMaxLength(50)
+                        .HasColumnType("nvarchar(50)")
                         .HasColumnName("ID_Number");
 
                     b.Property<int>("IDProof")
@@ -60,23 +138,29 @@ namespace AuthenticationService.Migrations
                         .HasColumnName("ID_Proof");
 
                     b.Property<string>("IDUpload")
-                        .HasColumnType("nvarchar(max)")
+                        .HasMaxLength(255)
+                        .HasColumnType("nvarchar(255)")
                         .HasColumnName("ID_Upload");
 
                     b.Property<string>("LoginId")
-                        .HasColumnType("nvarchar(max)")
+                        .IsRequired()
+                        .HasMaxLength(50)
+                        .HasColumnType("nvarchar(50)")
                         .HasColumnName("Login_id");
 
                     b.Property<DateTime?>("ModificationDate")
-                        .HasColumnType("datetime2")
+                        .HasColumnType("datetime")
                         .HasColumnName("Modification_Date");
 
                     b.Property<string>("Name")
-                        .HasColumnType("nvarchar(max)")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("nvarchar(100)")
                         .HasColumnName("Name");
 
                     b.Property<string>("PinCode")
-                        .HasColumnType("nvarchar(max)")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(10)")
                         .HasColumnName("Pin_Code");
 
                     b.Property<int?>("RangeId")
@@ -87,7 +171,7 @@ namespace AuthenticationService.Migrations
                         .HasColumnType("int")
                         .HasColumnName("Source_Type");
 
-                    b.Property<int?>("StateId")
+                    b.Property<int>("StateId")
                         .HasColumnType("int")
                         .HasColumnName("State_Id");
 
@@ -97,10 +181,10 @@ namespace AuthenticationService.Migrations
 
                     b.HasKey("DetailsId");
 
-                    b.ToTable("Applicant_Personal_Details");
+                    b.ToTable("Applicant_Personal_Details", (string)null);
                 });
 
-            modelBuilder.Entity("AuthenticationService.Models.MasterRegistration", b =>
+            modelBuilder.Entity("AuthenticationService.Models.ApplicantRegistration", b =>
                 {
                     b.Property<int>("RegistrationId")
                         .ValueGeneratedOnAdd()
@@ -110,52 +194,64 @@ namespace AuthenticationService.Migrations
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("RegistrationId"));
 
                     b.Property<DateTime?>("CreatedDate")
-                        .HasColumnType("datetime2")
+                        .HasColumnType("datetime")
                         .HasColumnName("Created_Date");
 
                     b.Property<string>("EmailId")
-                        .HasColumnType("nvarchar(max)")
+                        .IsRequired()
+                        .HasMaxLength(150)
+                        .HasColumnType("nvarchar(150)")
                         .HasColumnName("Email_id");
 
                     b.Property<string>("IsVerified")
-                        .HasColumnType("nvarchar(1)")
+                        .HasColumnType("char(1)")
                         .HasColumnName("Is_Verified");
 
                     b.Property<string>("LoginId")
-                        .HasColumnType("nvarchar(max)")
+                        .IsRequired()
+                        .HasMaxLength(50)
+                        .HasColumnType("nvarchar(50)")
                         .HasColumnName("Login_Id");
 
                     b.Property<string>("LoginSource")
-                        .HasColumnType("nvarchar(max)")
+                        .HasMaxLength(20)
+                        .HasColumnType("nvarchar(20)")
                         .HasColumnName("LoginSource");
 
                     b.Property<string>("MobileNo")
-                        .HasColumnType("nvarchar(max)")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(15)")
                         .HasColumnName("Mobile_No");
 
                     b.Property<string>("Name")
-                        .HasColumnType("nvarchar(max)")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("nvarchar(100)")
                         .HasColumnName("Name");
 
                     b.Property<string>("NameTitle")
-                        .HasColumnType("nvarchar(max)")
+                        .HasMaxLength(10)
+                        .HasColumnType("nvarchar(10)")
                         .HasColumnName("Name_Title");
 
                     b.Property<string>("Password")
-                        .HasColumnType("nvarchar(max)")
+                        .IsRequired()
+                        .HasMaxLength(256)
+                        .HasColumnType("nvarchar(256)")
                         .HasColumnName("Password");
 
                     b.Property<string>("RegistrationType")
-                        .HasColumnType("nvarchar(max)")
+                        .HasMaxLength(50)
+                        .HasColumnType("nvarchar(50)")
                         .HasColumnName("Registration_Type");
 
-                    b.Property<string>("UserRole")
-                        .HasColumnType("nvarchar(max)")
+                    b.Property<int?>("UserRole")
+                        .HasColumnType("int")
                         .HasColumnName("UserRole");
 
                     b.HasKey("RegistrationId");
 
-                    b.ToTable("Master_Registration");
+                    b.ToTable("Applicant_Registration", (string)null);
                 });
 
             modelBuilder.Entity("AuthenticationService.Models.VerifyOtp", b =>
@@ -168,6 +264,7 @@ namespace AuthenticationService.Migrations
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
 
                     b.Property<string>("ApplicationId")
+                        .IsRequired()
                         .HasMaxLength(50)
                         .HasColumnType("nvarchar(50)")
                         .HasColumnName("Application_Id");
@@ -177,35 +274,36 @@ namespace AuthenticationService.Migrations
                         .HasColumnName("Attempt");
 
                     b.Property<DateTime?>("CreatedDate")
-                        .HasColumnType("datetime2")
+                        .HasColumnType("datetime")
                         .HasColumnName("Created_Date");
 
                     b.Property<string>("MobileNo")
-                        .HasMaxLength(50)
-                        .HasColumnType("nvarchar(50)")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(15)")
                         .HasColumnName("Mobile_No");
 
                     b.Property<string>("Otp")
+                        .IsRequired()
                         .HasMaxLength(6)
                         .HasColumnType("nvarchar(6)")
                         .HasColumnName("OTP");
 
-                    b.Property<int?>("OtpCasesId")
+                    b.Property<int>("OtpCasesId")
                         .HasColumnType("int")
                         .HasColumnName("OTP_Cases_Id");
 
                     b.Property<string>("Status")
-                        .HasMaxLength(1)
-                        .HasColumnType("nvarchar(1)")
+                        .IsRequired()
+                        .HasColumnType("char(1)")
                         .HasColumnName("Status");
 
                     b.Property<DateTime?>("UpdatedDate")
-                        .HasColumnType("datetime2")
+                        .HasColumnType("datetime")
                         .HasColumnName("Updated_Date");
 
                     b.HasKey("Id");
 
-                    b.ToTable("Verify_Otp");
+                    b.ToTable("Verify_Otp", (string)null);
                 });
 #pragma warning restore 612, 618
         }

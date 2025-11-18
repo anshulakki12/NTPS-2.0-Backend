@@ -14,7 +14,7 @@ namespace MasterAdminService.Controllers
         {
             _repository = repository;
         }
-        [Authorize(Roles = "Applicant")]
+        //[Authorize(Roles = "Applicant")]
         [HttpGet("GetRangesByDivision/{divisionId}")]
         public async Task<IActionResult> GetRangesByDivision(int divisionId)
         {

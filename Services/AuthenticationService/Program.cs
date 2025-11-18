@@ -1,4 +1,5 @@
-﻿using AuthenticationService.Data;
+﻿using ApplicantAuthenticationService.Services;
+using AuthenticationService.Data;
 using AuthenticationService.Repositories;
 using AuthenticationService.Services;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
@@ -8,63 +9,60 @@ using System.Text;
 
 var builder = WebApplication.CreateBuilder(args);
 
-// Add controllers
+// --- Core services ---
 builder.Services.AddControllers();
 builder.Services.AddEndpointsApiExplorer();
+builder.Services.AddMemoryCache();
 
-// CORS
-builder.Services.AddCors(options =>
-{
-    options.AddPolicy("AllowAll",
-        policy => policy.AllowAnyOrigin()
-                        .AllowAnyMethod()
-                        .AllowAnyHeader());
-});
-
-// Session
-builder.Services.AddDistributedMemoryCache();
-builder.Services.AddSession(options =>
-{
-    options.IdleTimeout = TimeSpan.FromMinutes(10); // keep as required
-    options.Cookie.HttpOnly = true;
-    options.Cookie.IsEssential = true;
-});
-
-// EF Core
+// --- EF Core ---
 builder.Services.AddDbContext<AppDbContext>(options =>
     options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));
 
-// Repositories & app services
-builder.Services.AddScoped<IMasterRegistrationRepository, MasterRegistrationRepository>();
-builder.Services.AddScoped<IOtpService, OtpService>();
-// Use the exact implementation name you have in your project
-builder.Services.AddScoped<IPasswordService, PasswodService>(); // keep same as your project
-builder.Services.AddScoped<ITokenService, TokenService>();
-
-// JWT Authentication configuration
-var jwtKey = builder.Configuration["Jwt:Key"];
-var jwtIssuer = builder.Configuration["Jwt:Issuer"];
-var jwtAudience = builder.Configuration["Jwt:Audience"];
-
-if (string.IsNullOrWhiteSpace(jwtKey))
-    throw new Exception("JWT Key is not configured. Add Jwt:Key to appsettings or environment.");
-
-var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(jwtKey));
-builder.Services.AddAuthentication(options =>
+// --- CORS ---
+builder.Services.AddCors(options =>
 {
-    options.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
-    options.DefaultChallengeScheme = JwtBearerDefaults.AuthenticationScheme;
-})
+    options.AddPolicy("AllowAngular", policy =>
+    {
+        policy.WithOrigins("http://localhost:4200")
+              .AllowAnyMethod()
+              .AllowAnyHeader()
+              .AllowCredentials();
+    });
+});
+
+// --- Session ---
+builder.Services.AddDistributedMemoryCache();
+builder.Services.AddSession(options =>
+{
+    options.IdleTimeout = TimeSpan.FromMinutes(10);
+    options.Cookie.HttpOnly = true;
+    options.Cookie.IsEssential = true;
+    options.Cookie.SameSite = SameSiteMode.None;
+    options.Cookie.SecurePolicy = CookieSecurePolicy.None; // set Always in production
+});
+
+// --- Repositories / Services ---
+builder.Services.AddScoped<IApplicantRegistrationRepository, ApplicantRegistrationRepository>();
+builder.Services.AddScoped<IOtpService, OtpService>();
+builder.Services.AddScoped<IPasswordService, PasswodService>();
+builder.Services.AddScoped<ITokenService, TokenService>();
+builder.Services.AddScoped<ResourceSeeder>();
+
+// --- JWT Config ---
+var jwtKey = builder.Configuration["Jwt:Key"] ?? throw new Exception("JWT Key missing");
+var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(jwtKey));
+
+builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
 .AddJwtBearer(options =>
 {
-    options.RequireHttpsMetadata = false; // set true in production
+    options.RequireHttpsMetadata = false;
     options.SaveToken = true;
     options.TokenValidationParameters = new TokenValidationParameters
     {
         ValidateIssuer = true,
-        ValidIssuer = jwtIssuer,
+        ValidIssuer = builder.Configuration["Jwt:Issuer"],
         ValidateAudience = true,
-        ValidAudience = jwtAudience,
+        ValidAudience = builder.Configuration["Jwt:Audience"],
         ValidateIssuerSigningKey = true,
         IssuerSigningKey = key,
         ValidateLifetime = true,
@@ -74,16 +72,28 @@ builder.Services.AddAuthentication(options =>
 
 var app = builder.Build();
 
-// Middleware order important:
-app.UseCors("AllowAll");
+// --- Migrations + Seed ---
+using (var scope = app.Services.CreateScope())
+{
+    var db = scope.ServiceProvider.GetRequiredService<AppDbContext>();
+    db.Database.Migrate();
 
+    var seeder = scope.ServiceProvider.GetRequiredService<ResourceSeeder>();
+    await seeder.SeedFromResxAsync("en-US");
+}
+
+// --- Middleware ---
+//if (app.Environment.IsDevelopment())
+//{
+//    app.UseSwagger();
+//    app.UseSwaggerUI();
+//}
+
+app.UseCors("AllowAngular");
 app.UseRouting();
-
-// enable authentication and session BEFORE controllers
 app.UseSession();
 app.UseAuthentication();
 app.UseAuthorization();
-
 app.MapControllers();
 
 app.Run();

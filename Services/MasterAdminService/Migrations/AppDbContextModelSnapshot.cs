@@ -48,7 +48,7 @@ namespace MasterAdminService.Migrations
 
                     b.HasIndex("StateId");
 
-                    b.ToTable("Circle");
+                    b.ToTable("Circle", (string)null);
                 });
 
             modelBuilder.Entity("MasterAdminService.Models.Division", b =>
@@ -81,7 +81,7 @@ namespace MasterAdminService.Migrations
 
                     b.HasIndex("CircleId");
 
-                    b.ToTable("Division");
+                    b.ToTable("Division", (string)null);
                 });
 
             modelBuilder.Entity("MasterAdminService.Models.Range", b =>
@@ -126,7 +126,7 @@ namespace MasterAdminService.Migrations
 
                     b.HasIndex("SubDivId");
 
-                    b.ToTable("Range");
+                    b.ToTable("Range", (string)null);
                 });
 
             modelBuilder.Entity("MasterAdminService.Models.State", b =>
@@ -195,7 +195,7 @@ namespace MasterAdminService.Migrations
 
                     b.HasKey("StateId");
 
-                    b.ToTable("State");
+                    b.ToTable("State", (string)null);
                 });
 
             modelBuilder.Entity("MasterAdminService.Models.SubDivision", b =>
@@ -229,7 +229,7 @@ namespace MasterAdminService.Migrations
 
                     b.HasIndex("DivisionId1");
 
-                    b.ToTable("Sub_Division");
+                    b.ToTable("Sub_Division", (string)null);
                 });
 
             modelBuilder.Entity("MasterAdminService.Models.Circle", b =>

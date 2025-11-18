@@ -1,4 +1,6 @@
 ﻿using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
+using SpeciesService.Data;
 
 // For more information on enabling Web API for empty projects, visit https://go.microsoft.com/fwlink/?LinkID=397860
 
@@ -8,36 +10,37 @@ namespace SpeciesService.Controllers
     [ApiController]
     public class SpeciesController : ControllerBase
     {
-        // GET: api/<SpeciesController>
-        [HttpGet]
-        public IEnumerable<string> Get()
+        private readonly AppDbContext _context;
+
+        public SpeciesController(AppDbContext context)
         {
-            return new string[] { "value1", "value2" };
+            _context = context;
         }
 
-        // GET api/<SpeciesController>/5
-        [HttpGet("{id}")]
-        public string Get(int id)
+        /// <summary>
+        /// Returns forest produce (species) for a given state
+        /// </summary>
+        [HttpGet("GetForestProduceByState/{stateId}")]
+        public async Task<IActionResult> GetForestProduceByState(int stateId)
         {
-            return "value";
-        }
+            if (stateId <= 0)
+                return BadRequest("Invalid State Id");
 
-        // POST api/<SpeciesController>
-        [HttpPost]
-        public void Post([FromBody] string value)
-        {
-        }
+            var species = await _context.ForestProduces
+                .Where(s => _context.speciesExempted
+                    .Where(se => se.StateId == stateId)
+                    .Select(se => se.SpeciesId)
+                    .Distinct()
+                    .Contains(s.ForestProduceId))
+                .OrderBy(s => s.Name)
+                .Select(s => new
+                {
+                    label = s.Name,
+                    value = s.ForestProduceId.ToString()
+                })
+                .ToListAsync();
 
-        // PUT api/<SpeciesController>/5
-        [HttpPut("{id}")]
-        public void Put(int id, [FromBody] string value)
-        {
-        }
-
-        // DELETE api/<SpeciesController>/5
-        [HttpDelete("{id}")]
-        public void Delete(int id)
-        {
+            return Ok(species);
         }
     }
 }

@@ -14,7 +14,7 @@ namespace MasterAdminService.Controllers
         {
             _repository = repository;
         }
-        [Authorize(Roles = "Applicant")]
+
         [HttpGet("GetStates")]
         public async Task<IActionResult> GetStates()
         {

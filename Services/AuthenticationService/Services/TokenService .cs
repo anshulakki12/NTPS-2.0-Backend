@@ -24,8 +24,16 @@ namespace AuthenticationService.Services
             _key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(secret));
         }
 
-        public TokenResult GenerateToken(MasterRegistration user, string role)
+        public TokenResult GenerateToken(ApplicantRegistration user, int role)
         {
+            // Map numeric role to string for JWT
+            string roleString = role switch
+            {
+                1 => "Applicant",
+                2 => "Officer",
+                3 => "Revenue",
+                4 => "Enumerator"
+            };
             var claims = new List<Claim>
             {
                 // Standard and custom claims
@@ -34,7 +42,8 @@ namespace AuthenticationService.Services
                 new Claim(ClaimTypes.Name, user.Name ?? string.Empty),
                 new Claim(ClaimTypes.Email, user.EmailId ?? string.Empty),
                 new Claim(ClaimTypes.MobilePhone, user.MobileNo ?? string.Empty),
-                new Claim(ClaimTypes.Role, role ?? "Applicant")
+                new Claim(ClaimTypes.Role, roleString)
+
             };
 
             var creds = new SigningCredentials(_key, SecurityAlgorithms.HmacSha256);

@@ -5,6 +5,6 @@ namespace AuthenticationService.Services
 {
     public interface ITokenService
     {
-        TokenResult GenerateToken(MasterRegistration user, string role);
+        TokenResult GenerateToken(ApplicantRegistration user, int role);
     }
 }

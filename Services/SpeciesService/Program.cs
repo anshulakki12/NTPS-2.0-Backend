@@ -1,18 +1,41 @@
 ﻿using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.Extensions.DependencyInjection;
 using Microsoft.IdentityModel.Tokens;
-using Microsoft.OpenApi.Models;
 using SpeciesService.Data;
 using System.Text;
 
 var builder = WebApplication.CreateBuilder(args);
 
-// ✅ Add repository
-
-// Add controllers
+// 1️⃣ Add Services (before builder.Build())
 builder.Services.AddControllers();
 builder.Services.AddEndpointsApiExplorer();
+
+// ✅ Add session support — must come BEFORE app.UseSession()
+builder.Services.AddDistributedMemoryCache();
+builder.Services.AddSession(options =>
+{
+    options.IdleTimeout = TimeSpan.FromMinutes(10);
+    options.Cookie.HttpOnly = true;
+    options.Cookie.IsEssential = true;
+});
+
+// ✅ Add CORS
+builder.Services.AddCors(options =>
+{
+    options.AddPolicy("AllowAngular", policy =>
+        policy.WithOrigins("http://localhost:4200")
+              .AllowAnyHeader()
+              .AllowAnyMethod());
+});
+
+// ✅ Add EF Core
+builder.Services.AddDbContext<AppDbContext>(options =>
+    options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));
+
+// ✅ (optional) Add JWT Authentication, Authorization as before
+// ...
+// JWT config (as before)
+// ...
 // ✅ read from appsettings.json or environment variables
 var jwtKey = builder.Configuration["Jwt:Key"];
 var jwtIssuer = builder.Configuration["Jwt:Issuer"];
@@ -39,52 +62,21 @@ builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
             ClockSkew = TimeSpan.FromSeconds(30)
         };
     });
-
-builder.Services.AddAuthorization(options =>
-{
-    // generic role-based policy
-    options.AddPolicy("ApplicantOnly",
-        policy => policy.RequireRole("Applicant"));
-});
-
-
-builder.Services.AddCors(options =>
-{
-    options.AddPolicy("AllowAll",
-        policy => policy.AllowAnyOrigin()
-                        .AllowAnyMethod()
-                        .AllowAnyHeader());
-});
-
-// Add session support
-builder.Services.AddDistributedMemoryCache();
-builder.Services.AddSession(options =>
-{
-    options.IdleTimeout = TimeSpan.FromMinutes(10);
-    options.Cookie.HttpOnly = true;
-    options.Cookie.IsEssential = true;
-});
-
-
-// ✅ EF Core with SQL Server
-builder.Services.AddDbContext<AppDbContext>(options =>
-    options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));
-
-
 var app = builder.Build();
 
-// Enable CORS
-app.UseCors("AllowAll");
-
-app.UseCors(b => b.AllowAnyOrigin().AllowAnyHeader().AllowAnyMethod());
+// 2️⃣ Use Middleware (correct order)
+app.UseCors("AllowAngular");
 app.UseRouting();
 
-// Enable session before hitting controllers
-app.UseSession();
-
+app.UseAuthentication();
 app.UseAuthorization();
+
+// ✅ Now you can safely use session middleware
+app.UseSession();
 
 app.MapControllers();
 
 app.Run();
+
+
 

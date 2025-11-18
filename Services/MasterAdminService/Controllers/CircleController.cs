@@ -14,7 +14,7 @@ namespace MasterAdminService.Controllers
         {
             _repository = repository;
         }
-        [Authorize(Roles = "Applicant")]
+
         [HttpGet("GetCirclesByState/{stateId}")]
         public async Task<IActionResult> GetCirclesByState(int stateId)
         {

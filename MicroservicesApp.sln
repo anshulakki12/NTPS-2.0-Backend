@@ -5,7 +5,7 @@ VisualStudioVersion = 17.0.31903.59
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Services", "Services", "{5854FF58-B8C5-05C6-5BF2-ACE42193F22B}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AuthenticationService", "Services\AuthenticationService\AuthenticationService.csproj", "{34EF328F-DC5D-42BC-BE09-A0BFC622C366}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ApplicantAuthenticationService", "Services\AuthenticationService\ApplicantAuthenticationService.csproj", "{34EF328F-DC5D-42BC-BE09-A0BFC622C366}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "OfficerService", "Services\OfficerService\OfficerService.csproj", "{44D59158-8CD2-480F-B14C-B5F2CFFF430D}"
 EndProject

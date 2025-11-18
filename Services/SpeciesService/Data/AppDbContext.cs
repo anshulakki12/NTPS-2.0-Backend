@@ -10,5 +10,6 @@ namespace SpeciesService.Data
         }
         public DbSet<ForestProduce> ForestProduces { get; set; }
         public DbSet<MasterSpecies> masterSpecies { get; set; }
+        public DbSet<SpeciesExempted> speciesExempted { get; set; }
     }
 }
