@@ -42,6 +42,13 @@ namespace OfficerService.Data
         public DbSet<SpeciesLogsFuelwood> SpeciesLogsFuelwoods { get; set; }
         public DbSet<SpeciesLogsMinorForestProduce> SpeciesLogsMinorForestProduces { get; set; }
         public DbSet<SpeciesLogsSawnTimber> SpeciesLogsSawnTimbers { get; set; }
+        public DbSet<TpSourcePlace> TpSourcePlaces { get; set; }
+        public DbSet<TpDestinationPlace> TpDestinationPlaces { get; set; }
+        public DbSet<GovernmentDepot> GovernmentDepots { get; set; }
+        public DbSet<SourceLatLong> SourceLatLongs { get; set; }
+        public DbSet<NocDestinationPlace> NocDestinationPlaces { get; set; }
+
+        public DbSet<NocSourcePlace> NocSourcePlaces { get; set; }
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {

@@ -3,6 +3,7 @@ using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using OfficerService.Data;
 
@@ -11,9 +12,11 @@ using OfficerService.Data;
 namespace OfficerService.Migrations
 {
     [DbContext(typeof(AppDbContext))]
-    partial class AppDbContextModelSnapshot : ModelSnapshot
+    [Migration("20251204093549_updatecolumnsregistrationnos")]
+    partial class updatecolumnsregistrationnos
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -1406,10 +1409,10 @@ namespace OfficerService.Migrations
                         .HasColumnType("nvarchar(25)")
                         .HasColumnName("Longitude");
 
-                    b.Property<string>("RegistrationNo")
+                    b.Property<string>("TPRegistration")
                         .HasMaxLength(100)
                         .HasColumnType("nvarchar(100)")
-                        .HasColumnName("Registration_No");
+                        .HasColumnName("TP_Registration");
 
                     b.Property<DateTime?>("UpdatedDate")
                         .HasColumnType("datetime2")

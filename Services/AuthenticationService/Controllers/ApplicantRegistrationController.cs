@@ -112,7 +112,7 @@ namespace AuthenticationService.Controllers
             // ✅ Hash password (same as login)
             using SHA512 sha = SHA512.Create();
             var hashBytes = sha.ComputeHash(Encoding.UTF8.GetBytes(decryptedPassword));
-            string hashedPassword = Convert.ToBase64String(hashBytes);
+            string hashedPassword = Convert.ToHexString(hashBytes);
 
             // ✅ Saves
             var registration = new ApplicantRegistration
@@ -246,7 +246,7 @@ namespace AuthenticationService.Controllers
             // ✅ Hash decrypted password using SHA-512
             using SHA512 sha = SHA512.Create();
             var hashBytes = sha.ComputeHash(Encoding.UTF8.GetBytes(decryptedPassword));
-            string hashedPassword = Convert.ToBase64String(hashBytes);
+            string hashedPassword = Convert.ToHexString(hashBytes);
 
             // ✅ Compare hashed password with stored password
             if (!string.Equals(registration.Password, hashedPassword, StringComparison.Ordinal))
@@ -767,7 +767,7 @@ namespace AuthenticationService.Controllers
             using (var sha = SHA512.Create())
             {
                 var newHashBytes = sha.ComputeHash(Encoding.UTF8.GetBytes(decryptedNewPassword));
-                var newHashBase64 = Convert.ToBase64String(newHashBytes);
+                var newHashBase64 = Convert.ToHexString(newHashBytes);
 
                 // Update entity
                 existing.Password = newHashBase64;

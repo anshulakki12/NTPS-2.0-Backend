@@ -12,9 +12,16 @@ namespace OfficerService.Models
         public long Id { get; set; }
 
         [Required(ErrorMessage = "TP Registration is required.")]
-        [Column("TP_Registration")]
+        [Column("Registration_No")]
         [StringLength(100, ErrorMessage = "TP Registration cannot exceed 100 characters.")]
-        public string TPRegistration { get; set; }
+        public string RegistrationNo { get; set; }
+
+        [Required]
+        [Column("ForestProduceId")]
+        public int ForestProduceId { get; set; }
+
+        [ForeignKey("ForestProduceId")]
+        public ForestProduce? ForestProduce { get; set; }
 
         [Required(ErrorMessage = "Species ID is required.")]
         [Column("Species_ID")]
@@ -49,6 +56,9 @@ namespace OfficerService.Models
         [Required]
         [Column("Created_Date")]
         public DateTime CreatedDate { get; set; } = DateTime.Now;
+
+        [Column("Application_Id")]
+        public long? ApplicationId { get; set; }
         public MasterSpecies? Species { get; set; }
     }
 }

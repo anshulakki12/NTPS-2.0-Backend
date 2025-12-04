@@ -1,4 +1,5 @@
-﻿using Microsoft.EntityFrameworkCore;
+﻿using Azure.Core;
+using Microsoft.EntityFrameworkCore;
 using OfficerService.Data;
 using OfficerService.Models;
 using OfficerService.Repositories;
@@ -119,113 +120,6 @@ namespace OfficerService.Services
             }
         }
 
-        //public async Task<ProduceDetailResponseDto> AddProduceDetailsAsyncs(AddProduceDetailRequestDto request)
-        //{
-        //    using var transaction = await _context.Database.BeginTransactionAsync();
-
-        //    try
-        //    {
-        //        _logger.LogInformation("Starting to add produce details for ApplicationId: {ApplicationId}, ForestProduceId: {ForestProduceId}",
-        //            request.ApplicationId, request.ForestProduceId);
-
-        //        // Get application with state information first
-        //        var application = await _context.ApplicationMasters
-        //            .Include(a => a.State)
-        //            .FirstOrDefaultAsync(a => a.ApplicationId == request.ApplicationId);
-
-        //        if (application?.State == null)
-        //            throw new Exception("Application or State not found");
-
-        //        // Parse all string values to decimals first
-        //        foreach (var detail in request.ProduceDetails)
-        //        {
-        //            ParseDetailStringValues(detail);
-        //        }
-
-        //        // Determine Application Category based on SpeciesMapping table
-        //        int applicationCategoryId = await DetermineApplicationCategory(
-        //            request.ForestProduceId,
-        //            application.StateId ?? throw new Exception("Application StateId is null"));
-
-        //        _logger.LogInformation("ForestProduceId: {ForestProduceId} mapped to ApplicationCategoryId: {ApplicationCategoryId}",
-        //            request.ForestProduceId, applicationCategoryId);
-
-        //        // Check if ApplicationDetail already exists for this application and category
-        //        var existingApplicationDetail = await _context.ApplicationDetails
-        //            .FirstOrDefaultAsync(ad =>
-        //                ad.ApplicationId == request.ApplicationId &&
-        //                ad.ApplicationCateogryId == applicationCategoryId);
-
-        //        ApplicationDetail applicationDetail;
-        //        string registrationNo;
-
-        //        if (existingApplicationDetail != null)
-        //        {
-        //            _logger.LogInformation("Existing ApplicationDetail found, reusing it");
-        //            applicationDetail = existingApplicationDetail;
-        //            registrationNo = applicationDetail.RegistrationNo;
-
-        //            // Update registration number if it's null (shouldn't happen but just in case)
-        //            if (string.IsNullOrEmpty(registrationNo))
-        //            {
-        //                registrationNo = await GenerateRegistrationNoAsync(request.ApplicationId, applicationCategoryId);
-        //                applicationDetail.RegistrationNo = registrationNo;
-        //                await _context.SaveChangesAsync();
-        //            }
-        //        }
-        //        else
-        //        {
-        //            _logger.LogInformation("Creating new ApplicationDetail");
-        //            registrationNo = await GenerateRegistrationNoAsync(request.ApplicationId, applicationCategoryId);
-
-        //            // Create new ApplicationDetail with CORRECT category ID from SpeciesMapping
-        //            applicationDetail = new ApplicationDetail
-        //            {
-        //                ApplicationId = request.ApplicationId,
-        //                ApplicationCateogryId = applicationCategoryId, // Use the category from SpeciesMapping
-        //                RegistrationNo = registrationNo,
-        //                CreatedDate = DateTime.UtcNow,
-        //                CreateByUserId = "AP-Ans000"
-        //            };
-
-        //            _context.ApplicationDetails.Add(applicationDetail);
-        //            await _context.SaveChangesAsync();
-        //            _logger.LogInformation("ApplicationDetail created with ID: {Id}", applicationDetail.Id);
-        //        }
-
-        //        // Check and save species logs based on forest produce type
-        //        _logger.LogInformation("Processing {Count} species logs for RegistrationNo: {RegistrationNo}",
-        //            request.ProduceDetails.Count, registrationNo);
-
-        //        foreach (var detail in request.ProduceDetails)
-        //        {
-        //            await CheckAndSaveSpeciesLogAsync(request.ForestProduceId, registrationNo, detail);
-        //        }
-
-        //        // Save all species logs to database
-        //        var speciesLogsCount = await _context.SaveChangesAsync();
-        //        _logger.LogInformation("Saved {Count} species logs to database", speciesLogsCount);
-
-        //        await transaction.CommitAsync();
-
-        //        _logger.LogInformation("Successfully saved all produce details and committed transaction");
-
-        //        return new ProduceDetailResponseDto
-        //        {
-        //            Success = true,
-        //            Message = "Produce details saved successfully",
-        //            RegistrationNo = registrationNo,
-        //            ApplicationDetailId = applicationDetail.Id
-        //        };
-        //    }
-        //    catch (Exception ex)
-        //    {
-        //        await transaction.RollbackAsync();
-        //        _logger.LogError(ex, "Error saving produce details for ApplicationId: {ApplicationId}", request.ApplicationId);
-        //        throw new Exception($"Failed to save produce details: {ex.Message}", ex);
-        //    }
-        //}
-
         public async Task<ProduceDetailResponseDto> AddProduceDetailsAsyncs(AddProduceDetailRequestDto request)
         {
             using var transaction = await _context.Database.BeginTransactionAsync();
@@ -243,21 +137,21 @@ namespace OfficerService.Services
                 if (application?.State == null)
                     throw new Exception("Application or State not found");
 
-                // Parse all string values to decimals first
+                int applicationCategoryId = 0;
+
                 foreach (var detail in request.ProduceDetails)
                 {
                     ParseDetailStringValues(detail);
+
+                    applicationCategoryId = await DetermineApplicationCategory(
+                        detail.SpeciesId,
+                        application.StateId ?? throw new Exception("Application StateId is null"));
+
+                    _logger.LogInformation("ForestProduceId: {ForestProduceId} mapped to ApplicationCategoryId: {ApplicationCategoryId}",
+                        request.ForestProduceId, applicationCategoryId);
                 }
 
-                // Determine Application Category based on SpeciesMapping table
-                int applicationCategoryId = await DetermineApplicationCategory(
-                    request.ForestProduceId,
-                    application.StateId ?? throw new Exception("Application StateId is null"));
-
-                _logger.LogInformation("ForestProduceId: {ForestProduceId} mapped to ApplicationCategoryId: {ApplicationCategoryId}",
-                    request.ForestProduceId, applicationCategoryId);
-
-                // Check if ApplicationDetail already exists for this application and category
+                // Check if this category already has a registration number for this application
                 var existingApplicationDetail = await _context.ApplicationDetails
                     .FirstOrDefaultAsync(ad =>
                         ad.ApplicationId == request.ApplicationId &&
@@ -268,29 +162,37 @@ namespace OfficerService.Services
 
                 if (existingApplicationDetail != null)
                 {
-                    _logger.LogInformation("Existing ApplicationDetail found, reusing RegistrationNo: {RegistrationNo}",
-                        existingApplicationDetail.RegistrationNo);
+                    _logger.LogInformation("Existing ApplicationDetail found for category {CategoryId}, reusing RegistrationNo: {RegistrationNo}",
+                        applicationCategoryId, existingApplicationDetail.RegistrationNo);
                     applicationDetail = existingApplicationDetail;
                     registrationNo = applicationDetail.RegistrationNo;
-
-                    // Update registration number if it's null (shouldn't happen but just in case)
-                    if (string.IsNullOrEmpty(registrationNo))
-                    {
-                        registrationNo = await GenerateRegistrationNoAsync(request.ApplicationId, applicationCategoryId);
-                        applicationDetail.RegistrationNo = registrationNo;
-                        await _context.SaveChangesAsync();
-                    }
                 }
                 else
                 {
-                    _logger.LogInformation("Creating new ApplicationDetail");
-                    registrationNo = await GenerateRegistrationNoAsync(request.ApplicationId, applicationCategoryId);
+                    _logger.LogInformation("Creating new ApplicationDetail for category {CategoryId}", applicationCategoryId);
 
-                    // Create new ApplicationDetail with CORRECT category ID from SpeciesMapping
+                    // Generate unique registration number for this category
+                    registrationNo = await GenerateUniqueRegistrationNoForCategoryAsync(
+                        request.ApplicationId,
+                        applicationCategoryId,
+                        application.State.StCode);
+
+                    // 🔥 **CRITICAL FIX**: Check if the generated number already exists
+                    var existsInDb = await _context.ApplicationDetails
+                        .AnyAsync(ad => ad.RegistrationNo == registrationNo);
+
+                    if (existsInDb)
+                    {
+                        // If it exists, generate a new one
+                        registrationNo = await GenerateNextAvailableRegistrationNoAsync(
+                            application.State.StCode,
+                            registrationNo);
+                    }
+
                     applicationDetail = new ApplicationDetail
                     {
                         ApplicationId = request.ApplicationId,
-                        ApplicationCateogryId = applicationCategoryId, // Use the category from SpeciesMapping
+                        ApplicationCateogryId = applicationCategoryId,
                         RegistrationNo = registrationNo,
                         CreatedDate = DateTime.UtcNow,
                         CreateByUserId = "AP-Ans000"
@@ -302,33 +204,48 @@ namespace OfficerService.Services
                         applicationDetail.Id, registrationNo);
                 }
 
-                // ALWAYS save species logs - don't check for existence
-                // This allows multiple entries of the same species under the same registration number
-                _logger.LogInformation("Saving {Count} species logs for RegistrationNo: {RegistrationNo}",
-                    request.ProduceDetails.Count, registrationNo);
-
-                foreach (var detail in request.ProduceDetails)
-                {
-                    // Directly save without checking existence - always create new entries
-                    await SaveSpeciesLogAsync(request.ForestProduceId, registrationNo, detail);
-                }
-
-                // Save all species logs to database
-                var speciesLogsCount = await _context.SaveChangesAsync();
-                _logger.LogInformation("Saved {Count} species logs to database for RegistrationNo: {RegistrationNo}",
-                    speciesLogsCount, registrationNo);
-
-                await transaction.CommitAsync();
-
-                _logger.LogInformation("Successfully saved all produce details and committed transaction");
-
-                return new ProduceDetailResponseDto
+                var response = new ProduceDetailResponseDto
                 {
                     Success = true,
-                    Message = "Produce details saved successfully",
+                    Message = "Produce details processed successfully",
                     RegistrationNo = registrationNo,
                     ApplicationDetailId = applicationDetail.Id
                 };
+
+                // Process each produce detail
+                foreach (var detail in request.ProduceDetails)
+                {
+                    if (detail.IsDeleted && detail.SpeciesLogId.HasValue)
+                    {
+                        await DeleteSpeciesLogAsync(detail.SpeciesLogId.Value, request.ForestProduceId);
+                        _logger.LogInformation("Deleted species log: {SpeciesLogId}", detail.SpeciesLogId.Value);
+                    }
+                    else if (detail.SpeciesLogId.HasValue)
+                    {
+                        var updatedLogId = await UpdateSpeciesLogAsync(request.ForestProduceId, detail.SpeciesLogId.Value, detail);
+                        response.SavedLogs.Add(new SpeciesLogResponse
+                        {
+                            SpeciesLogId = updatedLogId,
+                            SpeciesId = detail.SpeciesId,
+                            TemporaryId = detail.TemporaryId
+                        });
+                    }
+                    else
+                    {
+                        var newLogId = await SaveSpeciesLogAsync(request.ForestProduceId, registrationNo, detail, request);
+                        response.SavedLogs.Add(new SpeciesLogResponse
+                        {
+                            SpeciesLogId = newLogId,
+                            SpeciesId = detail.SpeciesId,
+                            TemporaryId = detail.TemporaryId
+                        });
+                    }
+                }
+
+                await _context.SaveChangesAsync();
+                await transaction.CommitAsync();
+
+                return response;
             }
             catch (Exception ex)
             {
@@ -338,151 +255,131 @@ namespace OfficerService.Services
             }
         }
 
-        //private async Task CheckAndSaveSpeciesLogAsync(int forestProduceId, string registrationNo, ProduceDetailDto detail)
-        //{
-        //    try
-        //    {
-        //        _logger.LogInformation("Checking and saving species log for RegistrationNo: {RegistrationNo}, SpeciesId: {SpeciesId}",
-        //            registrationNo, detail.SpeciesId);
-
-        //        bool exists = await CheckIfSpeciesLogExistsAsync(forestProduceId, registrationNo, detail);
-
-        //        if (!exists)
-        //        {
-        //            await SaveSpeciesLogAsync(forestProduceId, registrationNo, detail);
-        //            _logger.LogInformation("Created new species log for RegistrationNo: {RegistrationNo}, SpeciesId: {SpeciesId}",
-        //                registrationNo, detail.SpeciesId);
-        //        }
-        //        else
-        //        {
-        //            _logger.LogInformation("Species log already exists for RegistrationNo: {RegistrationNo}, SpeciesId: {SpeciesId} - skipping",
-        //                registrationNo, detail.SpeciesId);
-        //        }
-        //    }
-        //    catch (Exception ex)
-        //    {
-        //        _logger.LogError(ex, "Error in CheckAndSaveSpeciesLogAsync for RegistrationNo: {RegistrationNo}, SpeciesId: {SpeciesId}",
-        //            registrationNo, detail.SpeciesId);
-        //        throw;
-        //    }
-        //}
-
-        private async Task CheckAndSaveSpeciesLogAsync(int forestProduceId, string registrationNo, ProduceDetailDto detail)
+        private async Task<string> GenerateUniqueRegistrationNoForCategoryAsync(
+    long applicationId,
+    int applicationCategoryId,
+    int stateCode)
         {
             try
             {
-                _logger.LogInformation("Saving species log for RegistrationNo: {RegistrationNo}, SpeciesId: {SpeciesId}",
-                    registrationNo, detail.SpeciesId);
+                var currentYear = DateTime.UtcNow.Year;
 
-                // ALWAYS save the species log - don't check for existence
-                // This allows multiple entries of the same species under the same registration number
-                await SaveSpeciesLogAsync(forestProduceId, registrationNo, detail);
+                // Check if this category already has a registration number in this application
+                var existingForCategory = await _context.ApplicationDetails
+                    .Where(ad => ad.ApplicationId == applicationId &&
+                                ad.ApplicationCateogryId == applicationCategoryId)
+                    .Select(ad => ad.RegistrationNo)
+                    .FirstOrDefaultAsync();
 
-                _logger.LogInformation("Created species log for RegistrationNo: {RegistrationNo}, SpeciesId: {SpeciesId}",
-                    registrationNo, detail.SpeciesId);
+                if (!string.IsNullOrEmpty(existingForCategory))
+                {
+                    return existingForCategory;
+                }
+
+                // Get the next available sequence for this state and year
+                return await GetNextRegistrationNumberAsync(stateCode);
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Error in CheckAndSaveSpeciesLogAsync for RegistrationNo: {RegistrationNo}, SpeciesId: {SpeciesId}",
-                    registrationNo, detail.SpeciesId);
+                _logger.LogError(ex, "Error generating unique registration number for ApplicationId: {ApplicationId}, Category: {CategoryId}",
+                    applicationId, applicationCategoryId);
                 throw;
             }
         }
 
-        //private async Task SaveSpeciesLogAsync(int forestProduceId, string registrationNo, ProduceDetailDto detail)
-        //{
-        //    try
-        //    {
-        //        _logger.LogInformation("Saving species log for ForestProduceId: {ForestProduceId}, RegistrationNo: {RegistrationNo}, SpeciesId: {SpeciesId}",
-        //            forestProduceId, registrationNo, detail.SpeciesId);
+        // New method to get next available registration number
+        private async Task<string> GetNextRegistrationNumberAsync(int stateCode)
+        {
+            var currentYear = DateTime.UtcNow.Year;
+            var basePrefix = $"{stateCode}{currentYear}";
 
-        //        switch (forestProduceId)
-        //        {
-        //            case 1:  // Round Timber
-        //                var roundTimberLog = new SpeciesLogsRoundTimber
-        //                {
-        //                    TPRegistration = registrationNo,
-        //                    SpeciesID = detail.SpeciesId,
-        //                    LogsNo = detail.NoOfLogs ?? 1,
-        //                    Girth = detail.MiddleGirthCm ?? 0.01m,
-        //                    Length = detail.LengthCm ?? 0.01m,
-        //                    Quantity = detail.Quantity ?? 0.01m,
-        //                    Volume = detail.Volume ?? 0.001m,
-        //                    CreatedDate = DateTime.UtcNow
-        //                };
-        //                _context.SpeciesLogsRoundTimbers.Add(roundTimberLog);
-        //                break;
+            // Get all registration numbers for this state and year
+            var existingNumbers = await _context.ApplicationDetails
+                .Where(ad => ad.RegistrationNo != null &&
+                            ad.RegistrationNo.StartsWith(basePrefix))
+                .Select(ad => ad.RegistrationNo)
+                .ToListAsync();
 
-        //            case 2: // Bamboo 
-        //                var bambooLog = new SpeciesLogsBamboo
-        //                {
-        //                    TPRegistration = registrationNo,
-        //                    SpeciesID = detail.SpeciesId,
-        //                    GirthClass = detail.GirthClass ?? 0.01m,
-        //                    Length = detail.Length ?? 0.01m,
-        //                    Quantity = detail.Quantity ?? 0.01m,
-        //                    Unit = !string.IsNullOrEmpty(detail.Unit) ? detail.Unit[0].ToString() : "n",
-        //                    Volume = detail.Volume ?? 0.001m,
-        //                    CreatedDate = DateTime.UtcNow
-        //                };
-        //                _context.SpeciesLogsBamboos.Add(bambooLog);
-        //                break;
+            // Find the next available sequence
+            int nextSequence = 1000;
 
-        //            case 3: // Fuelwood
-        //                var fuelwoodLog = new SpeciesLogsFuelwood
-        //                {
-        //                    TPRegistration = registrationNo,
-        //                    SpeciesID = detail.SpeciesId,
-        //                    Quantity = detail.Quantity ?? 0.01m,
-        //                    Unit = !string.IsNullOrEmpty(detail.Unit) ? detail.Unit[0].ToString() : "t",
-        //                    CreatedDate = DateTime.UtcNow
-        //                };
-        //                _context.SpeciesLogsFuelwoods.Add(fuelwoodLog);
-        //                break;
+            if (existingNumbers.Any())
+            {
+                // Extract sequence numbers
+                var sequences = new List<int>();
+                foreach (var number in existingNumbers)
+                {
+                    if (number.Length > basePrefix.Length)
+                    {
+                        var sequencePart = number.Substring(basePrefix.Length);
+                        if (int.TryParse(sequencePart, out int seq))
+                        {
+                            sequences.Add(seq);
+                        }
+                    }
+                }
 
-        //            case 4: // Minor Forest Produce
-        //                var minorLog = new SpeciesLogsMinorForestProduce
-        //                {
-        //                    TPRegistration = registrationNo,
-        //                    SpeciesID = detail.SpeciesId,
-        //                    PlantPartID = detail.PlantPartID ?? 1,
-        //                    Quantity = detail.Quantity ?? 0.01m,
-        //                    Unit = !string.IsNullOrEmpty(detail.Unit) ? detail.Unit[0].ToString() : "k",
-        //                    CreatedDate = DateTime.UtcNow
-        //                };
-        //                _context.SpeciesLogsMinorForestProduces.Add(minorLog);
-        //                break;
+                if (sequences.Any())
+                {
+                    nextSequence = sequences.Max() + 1;
+                }
+            }
 
-        //            case 5: // Sawn Timber
-        //                var sawnTimberLog = new SpeciesLogsSawnTimber
-        //                {
-        //                    TPRegistration = registrationNo,
-        //                    SpeciesID = detail.SpeciesId,
-        //                    LogsNo = detail.NoOfPieces ?? 1,
-        //                    Girth = 0.01m, // Required field, set default
-        //                    Length = detail.LengthCm ?? 0.01m,
-        //                    Width = detail.Width ?? 0.01m,
-        //                    Thickness = detail.Thickness ?? 0.01m,
-        //                    Unit = !string.IsNullOrEmpty(detail.Unit) ? detail.Unit[0].ToString() : "c",
-        //                    Volume = detail.Volume ?? 0.001m,
-        //                    CreatedDate = DateTime.UtcNow
-        //                };
-        //                _context.SpeciesLogsSawnTimbers.Add(sawnTimberLog);
-        //                break;
+            return $"{basePrefix}{nextSequence:D4}";
+        }
 
-        //            default:
-        //                throw new Exception($"Unknown forest produce ID: {forestProduceId}");
-        //        }
-        //    }
-        //    catch (Exception ex)
-        //    {
-        //        _logger.LogError(ex, "Error saving species log for ForestProduceId: {ForestProduceId}, RegistrationNo: {RegistrationNo}",
-        //            forestProduceId, registrationNo);
-        //        throw;
-        //    }
-        //}
+        // New method to find next available number if generated one already exists
+        private async Task<string> GenerateNextAvailableRegistrationNoAsync(int stateCode, string existingNumber)
+        {
+            var currentYear = DateTime.UtcNow.Year;
+            var basePrefix = $"{stateCode}{currentYear}";
 
-        private async Task SaveSpeciesLogAsync(int forestProduceId, string registrationNo, ProduceDetailDto detail)
+            // Extract sequence from existing number
+            int currentSequence = 1000;
+            if (existingNumber.Length > basePrefix.Length)
+            {
+                var sequencePart = existingNumber.Substring(basePrefix.Length);
+                int.TryParse(sequencePart, out currentSequence);
+            }
+
+            // Get all existing registration numbers
+            var existingNumbers = await _context.ApplicationDetails
+                .Where(ad => ad.RegistrationNo != null &&
+                            ad.RegistrationNo.StartsWith(basePrefix))
+                .Select(ad => ad.RegistrationNo)
+                .ToListAsync();
+
+            // Find the next available sequence starting from currentSequence
+            var sequences = new HashSet<int>();
+            foreach (var number in existingNumbers)
+            {
+                if (number.Length > basePrefix.Length)
+                {
+                    var sequencePart = number.Substring(basePrefix.Length);
+                    if (int.TryParse(sequencePart, out int seq))
+                    {
+                        sequences.Add(seq);
+                    }
+                }
+            }
+
+            // Find next available number
+            int nextSequence = currentSequence;
+            while (sequences.Contains(nextSequence))
+            {
+                nextSequence++;
+
+                // Safety check to prevent infinite loop
+                if (nextSequence > 9999)
+                {
+                    throw new Exception("No available registration numbers for this state and year");
+                }
+            }
+
+            return $"{basePrefix}{nextSequence:D4}";
+        }
+
+        private async Task<long> SaveSpeciesLogAsync(int forestProduceId, string registrationNo, ProduceDetailDto detail, AddProduceDetailRequestDto request)
         {
             try
             {
@@ -494,8 +391,10 @@ namespace OfficerService.Services
                     case 1:  // Round Timber
                         var roundTimberLog = new SpeciesLogsRoundTimber
                         {
-                            TPRegistration = registrationNo,
+                            RegistrationNo = registrationNo,
                             SpeciesID = detail.SpeciesId,
+                            ApplicationId = request?.ApplicationId, // Store ApplicationId
+                            ForestProduceId = detail.ForestProduceId, // Add this
                             LogsNo = detail.NoOfLogs ?? 1,
                             Girth = detail.MiddleGirthCm ?? 0.01m,
                             Length = detail.LengthCm ?? 0.01m,
@@ -504,14 +403,16 @@ namespace OfficerService.Services
                             CreatedDate = DateTime.UtcNow
                         };
                         _context.SpeciesLogsRoundTimbers.Add(roundTimberLog);
-                        _logger.LogInformation("Added Round Timber log: {@RoundTimberLog}", roundTimberLog);
-                        break;
+                        await _context.SaveChangesAsync();
+                        return roundTimberLog.Id;
 
                     case 2: // Bamboo 
                         var bambooLog = new SpeciesLogsBamboo
                         {
-                            TPRegistration = registrationNo,
+                            RegistrationNo = registrationNo,
                             SpeciesID = detail.SpeciesId,
+                            ApplicationId = request?.ApplicationId, // Store ApplicationId
+                            ForestProduceId = detail.ForestProduceId, // Add this
                             GirthClass = detail.GirthClass ?? 0.01m,
                             Length = detail.Length ?? 0.01m,
                             Quantity = detail.Quantity ?? 0.01m,
@@ -520,43 +421,49 @@ namespace OfficerService.Services
                             CreatedDate = DateTime.UtcNow
                         };
                         _context.SpeciesLogsBamboos.Add(bambooLog);
-                        _logger.LogInformation("Added Bamboo log: {@BambooLog}", bambooLog);
-                        break;
+                        await _context.SaveChangesAsync();
+                        return bambooLog.Id;
 
                     case 3: // Fuelwood
                         var fuelwoodLog = new SpeciesLogsFuelwood
                         {
-                            TPRegistration = registrationNo,
+                            RegistrationNo = registrationNo,
                             SpeciesID = detail.SpeciesId,
+                            ForestProduceId = detail.ForestProduceId, // Add this
+                            ApplicationId = request?.ApplicationId, // Store ApplicationId
                             Quantity = detail.Quantity ?? 0.01m,
                             Unit = !string.IsNullOrEmpty(detail.Unit) ? detail.Unit[0].ToString() : "t",
                             CreatedDate = DateTime.UtcNow
                         };
                         _context.SpeciesLogsFuelwoods.Add(fuelwoodLog);
-                        _logger.LogInformation("Added Fuelwood log: {@FuelwoodLog}", fuelwoodLog);
-                        break;
+                        await _context.SaveChangesAsync();
+                        return fuelwoodLog.Id;
 
                     case 4: // Minor Forest Produce
                         var minorLog = new SpeciesLogsMinorForestProduce
                         {
-                            TPRegistration = registrationNo,
+                            RegistrationNo = registrationNo,
                             SpeciesID = detail.SpeciesId,
+                            ForestProduceId = detail.ForestProduceId, // Add this
+                            ApplicationId = request?.ApplicationId, // Store ApplicationId
                             PlantPartID = detail.PlantPartID ?? 1,
                             Quantity = detail.Quantity ?? 0.01m,
                             Unit = !string.IsNullOrEmpty(detail.Unit) ? detail.Unit[0].ToString() : "k",
                             CreatedDate = DateTime.UtcNow
                         };
                         _context.SpeciesLogsMinorForestProduces.Add(minorLog);
-                        _logger.LogInformation("Added Minor Forest Produce log: {@MinorLog}", minorLog);
-                        break;
+                        await _context.SaveChangesAsync();
+                        return minorLog.Id;
 
                     case 5: // Sawn Timber
                         var sawnTimberLog = new SpeciesLogsSawnTimber
                         {
-                            TPRegistration = registrationNo,
+                            RegistrationNo = registrationNo,
                             SpeciesID = detail.SpeciesId,
+                            ForestProduceId = detail.ForestProduceId, // Add this
+                            ApplicationId = request?.ApplicationId, // Store ApplicationId
                             LogsNo = detail.NoOfPieces ?? 1,
-                            Girth = 0.01m, // Required field, set default
+                            Girth = 0.01m,
                             Length = detail.LengthCm ?? 0.01m,
                             Width = detail.Width ?? 0.01m,
                             Thickness = detail.Thickness ?? 0.01m,
@@ -565,14 +472,12 @@ namespace OfficerService.Services
                             CreatedDate = DateTime.UtcNow
                         };
                         _context.SpeciesLogsSawnTimbers.Add(sawnTimberLog);
-                        _logger.LogInformation("Added Sawn Timber log: {@SawnTimberLog}", sawnTimberLog);
-                        break;
+                        await _context.SaveChangesAsync();
+                        return sawnTimberLog.Id;
 
                     default:
                         throw new Exception($"Unknown forest produce ID: {forestProduceId}");
                 }
-
-                // No need to call SaveChangesAsync here - it will be called once after all logs are added
             }
             catch (Exception ex)
             {
@@ -582,31 +487,103 @@ namespace OfficerService.Services
             }
         }
 
+        //// Add update and delete methods
+        //private async Task<long> UpdateSpeciesLogAsync(int forestProduceId, long speciesLogId, ProduceDetailDto detail)
+        //{
+        //    // Implementation for updating existing species logs
+        //    // Similar to SaveSpeciesLogAsync but with existing ID
+        //    // This would find the existing entity and update its properties
+        //    switch (forestProduceId)
+        //    {
+        //        case 1: // Round Timber
+        //            var roundTimber = await _context.SpeciesLogsRoundTimbers.FindAsync(speciesLogId);
+        //            if (roundTimber != null)
+        //            {
+        //                roundTimber.SpeciesID = detail.SpeciesId;
+        //                roundTimber.LogsNo = detail.NoOfLogs ?? 1;
+        //                roundTimber.Girth = detail.MiddleGirthCm ?? 0.01m;
+        //                roundTimber.Length = detail.LengthCm ?? 0.01m;
+        //                roundTimber.Quantity = detail.Quantity ?? 0.01m;
+        //                roundTimber.Volume = detail.Volume ?? 0.001m;
+        //                _context.SpeciesLogsRoundTimbers.Update(roundTimber);
+        //            }
+        //            break;
+        //            // Implement other cases similarly
+        //    }
+
+        //    await _context.SaveChangesAsync();
+        //    return speciesLogId;
+        //}
+
+
+        // Update the update method as well
+        private async Task<long> UpdateSpeciesLogAsync(int forestProduceId, long speciesLogId, ProduceDetailDto detail)
+        {
+            switch (forestProduceId)
+            {
+                case 1: // Round Timber
+                    var roundTimber = await _context.SpeciesLogsRoundTimbers.FindAsync(speciesLogId);
+                    if (roundTimber != null)
+                    {
+                        roundTimber.SpeciesID = detail.SpeciesId;
+                        roundTimber.ForestProduceId = detail.ForestProduceId; // Add this
+                        roundTimber.LogsNo = detail.NoOfLogs ?? 1;
+                        roundTimber.Girth = detail.MiddleGirthCm ?? 0.01m;
+                        roundTimber.Length = detail.LengthCm ?? 0.01m;
+                        roundTimber.Quantity = detail.Quantity ?? 0.01m;
+                        roundTimber.Volume = detail.Volume ?? 0.001m;
+                        _context.SpeciesLogsRoundTimbers.Update(roundTimber);
+                    }
+                    break;
+                    // Add other cases with ForestProduceId updates...
+            }
+
+            await _context.SaveChangesAsync();
+            return speciesLogId;
+        }
+
+        private async Task DeleteSpeciesLogAsync(long speciesLogId, int forestProduceId)
+        {
+            switch (forestProduceId)
+            {
+                case 1: // Round Timber
+                    var roundTimber = await _context.SpeciesLogsRoundTimbers.FindAsync(speciesLogId);
+                    if (roundTimber != null)
+                    {
+                        _context.SpeciesLogsRoundTimbers.Remove(roundTimber);
+                    }
+                    break;
+                    // Implement other cases similarly
+            }
+
+            await _context.SaveChangesAsync();
+        }
+
         // Helper method to map Forest Produce to Application Category using SpeciesMapping table
-        private async Task<int> DetermineApplicationCategory(int forestProduceId, int stateId)
+        private async Task<int> DetermineApplicationCategory(int speciesId, int stateId)
         {
             try
             {
                 _logger.LogInformation("Determining application category for ForestProduceId: {ForestProduceId}, StateId: {StateId}",
-                    forestProduceId, stateId);
+                    speciesId, stateId);
 
                 // Query the SpeciesMapping table to get the CategoryID
                 var speciesMapping = await _context.SpeciesMapping
                     .FirstOrDefaultAsync(sm =>
-                        sm.ForestProduceId == forestProduceId &&
+                        sm.SpeciesId == speciesId &&
                         sm.StateId == stateId &&
                         sm.IsActive);
 
                 if (speciesMapping != null)
                 {
-                    _logger.LogInformation("Found SpeciesMapping - CategoryID: {CategoryID} for ForestProduceId: {ForestProduceId}, StateId: {StateId}",
-                        speciesMapping.CategoryId, forestProduceId, stateId);
+                    _logger.LogInformation("Found SpeciesMapping - CategoryID: {CategoryID} for speciesId: {speciesId}, StateId: {StateId}",
+                        speciesMapping.CategoryId, speciesId, stateId);
                     return speciesMapping.CategoryId;
                 }
                 else
                 {
-                    _logger.LogWarning("No active SpeciesMapping found for ForestProduceId: {ForestProduceId}, StateId: {StateId}, defaulting to Transit Pass (2)",
-                        forestProduceId, stateId);
+                    _logger.LogWarning("No active SpeciesMapping found for speciesId: {speciesId}, StateId: {StateId}, defaulting to Transit Pass (2)",
+                        speciesId, stateId);
 
                     // Default to Transit Pass if no mapping found
                     return 2; // Transit Pass
@@ -614,8 +591,8 @@ namespace OfficerService.Services
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Error determining application category for ForestProduceId: {ForestProduceId}, StateId: {StateId}",
-                    forestProduceId, stateId);
+                _logger.LogError(ex, "Error determining application category for speciesId: {speciesId}, StateId: {StateId}",
+                    speciesId, stateId);
 
                 // Default to Transit Pass on error
                 return 2; // Transit Pass
@@ -717,7 +694,7 @@ namespace OfficerService.Services
             try
             {
                 _logger.LogInformation("Updating produce details for ApplicationId: {ApplicationId}, ForestProduceId: {ForestProduceId}",
-                    request.ApplicationId, request.ForestProduceId);
+                    request.ApplicationId, request.SpeciesId);
 
                 // Get application with state information
                 var application = await _context.ApplicationMasters
@@ -729,7 +706,7 @@ namespace OfficerService.Services
 
                 // Determine Application Category
                 int applicationCategoryId = await DetermineApplicationCategory(
-                    request.ForestProduceId,
+                    request.SpeciesId,
                     application.StateId ?? throw new Exception("Application StateId is null"));
 
                 // Get existing application detail
@@ -752,17 +729,17 @@ namespace OfficerService.Services
                     if (detail.IsDeleted && detail.SpeciesLogId.HasValue)
                     {
                         // Delete existing record
-                        await _applicationRepository.DeleteSpeciesLogAsync(detail.SpeciesLogId.Value, GetForestProduceType(request.ForestProduceId));
+                        await _applicationRepository.DeleteSpeciesLogAsync(detail.SpeciesLogId.Value, GetForestProduceType(request.SpeciesId));
                     }
                     else if (detail.SpeciesLogId.HasValue)
                     {
                         // Update existing record
-                        await _applicationRepository.UpdateSpeciesLogAsync(detail, GetForestProduceType(request.ForestProduceId));
+                        await _applicationRepository.UpdateSpeciesLogAsync(detail, GetForestProduceType(request.SpeciesId));
                     }
                     else
                     {
                         // Create new record
-                        await SaveSpeciesLogAsync(request.ForestProduceId, registrationNo, detail);
+                        await SaveSpeciesLogAsync(request.SpeciesId, registrationNo, detail, null);
                     }
                 }
 
@@ -804,5 +781,147 @@ namespace OfficerService.Services
                 _ => "Unknown"
             };
         }
+
+        public async Task<ApplicationDetailsDto?> GetApplicationWithSpeciesLogsAsync(long applicationId)
+        {
+            return await _applicationRepository.GetApplicationWithSpeciesLogsAsync(applicationId);
+        }
+
+        public async Task<SourceDestinationResponseDto> SaveProduceSourceAsync(SaveProduceSourceRequestDto request)
+        {
+            try
+            {
+                _logger.LogInformation("Saving produce source for ApplicationId: {ApplicationId}, ForestProduceId: {ForestProduceId}",
+                    request.ApplicationId, request.SpeciesId);
+
+                // Get application to determine state
+                var application = await _context.ApplicationMasters
+                    .FirstOrDefaultAsync(a => a.ApplicationId == request.ApplicationId);
+
+                if (application == null)
+                    throw new Exception("Application not found");
+
+                // Determine application category id
+                int applicationCategoryId = await DetermineApplicationCategory(
+                    request.SpeciesId,
+                    application.StateId ?? throw new Exception("Application StateId is null"));
+
+                // Get registration number for this forest produce
+                var applicationDetail = await _context.ApplicationDetails
+                    .FirstOrDefaultAsync(ad => ad.ApplicationId == request.ApplicationId &&
+                                              ad.ApplicationCateogryId == applicationCategoryId);
+
+                if (applicationDetail == null)
+                    throw new Exception("Application detail not found. Please save species details first.");
+
+                string registrationNo = applicationDetail.RegistrationNo;
+
+                if (string.IsNullOrEmpty(registrationNo))
+                    throw new Exception("Registration number not found");
+
+                // Save produce source
+                var result = await _applicationRepository.SaveProduceSourceAsync(request, applicationCategoryId);
+
+                return result;
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error saving produce source for ApplicationId: {ApplicationId}",
+                    request.ApplicationId);
+                throw;
+            }
+        }
+
+        public async Task<SourceDestinationResponseDto> SaveDestinationAsync(SaveDestinationRequestDto request)
+        {
+            try
+            {
+                _logger.LogInformation("Saving destination for ApplicationId: {ApplicationId}, ForestProduceId: {ForestProduceId}",
+                    request.ApplicationId, request.SpeciesId);
+
+                // Get application to determine state
+                var application = await _context.ApplicationMasters
+                    .FirstOrDefaultAsync(a => a.ApplicationId == request.ApplicationId);
+
+                if (application == null)
+                    throw new Exception("Application not found");
+
+                // Determine application category id
+                int applicationCategoryId = await DetermineApplicationCategory(
+                    request.SpeciesId,
+                    application.StateId ?? throw new Exception("Application StateId is null"));
+
+                // Get registration number for this forest produce
+                var applicationDetail = await _context.ApplicationDetails
+                    .FirstOrDefaultAsync(ad => ad.ApplicationId == request.ApplicationId &&
+                                              ad.ApplicationCateogryId == applicationCategoryId);
+
+                if (applicationDetail == null)
+                    throw new Exception("Application detail not found. Please save species details first.");
+
+                string registrationNo = applicationDetail.RegistrationNo;
+
+                if (string.IsNullOrEmpty(registrationNo))
+                    throw new Exception("Registration number not found");
+
+                // Save destination
+                var result = await _applicationRepository.SaveDestinationAsync(request, applicationCategoryId);
+
+                return result;
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error saving destination for ApplicationId: {ApplicationId}",
+                    request.ApplicationId);
+                throw;
+            }
+        }
+
+        public async Task<SourceDestinationDetailsDto?> GetSourceDestinationDetailsAsync(long applicationId, int forestProduceId)
+        {
+            try
+            {
+                _logger.LogInformation("Getting source/destination details for ApplicationId: {ApplicationId}, ForestProduceId: {ForestProduceId}",
+                    applicationId, forestProduceId);
+
+                // Get application to determine state
+                var application = await _context.ApplicationMasters
+                    .FirstOrDefaultAsync(a => a.ApplicationId == applicationId);
+
+                if (application == null)
+                    throw new Exception("Application not found");
+
+                // Determine application category id
+                int applicationCategoryId = await DetermineApplicationCategory(
+                    forestProduceId,
+                    application.StateId ?? throw new Exception("Application StateId is null"));
+
+                // Get registration number for this forest produce
+                var applicationDetail = await _context.ApplicationDetails
+                    .FirstOrDefaultAsync(ad => ad.ApplicationId == applicationId &&
+                                              ad.ApplicationCateogryId == applicationCategoryId);
+
+                if (applicationDetail == null)
+                    return null;
+
+                string registrationNo = applicationDetail.RegistrationNo;
+
+                if (string.IsNullOrEmpty(registrationNo))
+                    return null;
+
+                // Get source/destination details
+                var details = await _applicationRepository.GetSourceDestinationDetailsAsync(
+                    applicationId, registrationNo, applicationCategoryId);
+
+                return details;
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error getting source/destination details for ApplicationId: {ApplicationId}",
+                    applicationId);
+                return null;
+            }
+        }
+
     }
 }

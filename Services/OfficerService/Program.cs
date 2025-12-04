@@ -147,6 +147,13 @@ builder.Services.AddEndpointsApiExplorer();
 
 var app = builder.Build();
 
+// --- Migrations---
+using (var scope = app.Services.CreateScope())
+{
+    var db = scope.ServiceProvider.GetRequiredService<AppDbContext>();
+    db.Database.Migrate();
+}
+
 // IMPORTANT: Use forwarded headers middleware BEFORE any other middleware
 app.UseForwardedHeaders();
 

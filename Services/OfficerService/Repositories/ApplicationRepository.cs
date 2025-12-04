@@ -8,10 +8,12 @@ namespace OfficerService.Repositories
     public class ApplicationRepository : IApplicationRepository
     {
         private readonly AppDbContext _context;
+        private readonly ILogger<ApplicationRepository> _logger;
 
-        public ApplicationRepository(AppDbContext context)
+        public ApplicationRepository(AppDbContext context, ILogger<ApplicationRepository> logger)
         {
             _context = context;
+            _logger = logger;
         }
 
         // ApplicationRepository.cs
@@ -35,8 +37,6 @@ namespace OfficerService.Repositories
 
             return application;
         }
-
-        // Remove the GetNextApplicationIdAsync method as it's no longer needed
 
         public async Task<ApplicationDetail> AddProduceDetailAsync(AddProduceDetailRequestDto request)
         {
@@ -121,36 +121,6 @@ namespace OfficerService.Repositories
                 .ToListAsync();
         }
 
-        // ApplicationRepository.cs
-        public async Task<ApplicationDetailsDto?> GetApplicationByIdAsyncs(long applicationId)
-        {
-            return await _context.ApplicationMasters
-                .Where(a => a.ApplicationId == applicationId)
-                .Include(a => a.State)
-                .Include(a => a.District)
-                .Include(a => a.SubDistrict)
-                .Include(a => a.ForestProduce)
-                .Select(a => new ApplicationDetailsDto
-                {
-                    ApplicationId = a.ApplicationId,
-                    Status = a.Status,
-                    ApplicationStatus = a.ApplicationStatus,
-                    CreateByUserId = a.CreateByUserId,
-                    CreateByUserName = a.CreateByUserName,
-                    CreatedDate = a.CreatedDate,
-                    StateId = a.StateId,
-                    StateName = a.State != null ? a.State.StName : null,
-                    DistrictId = a.DistrictId,
-                    DistrictName = a.District != null ? a.District.DistName : null,
-                    SubDistrictId = a.SubDistrictId,
-                    SubDistrictName = a.SubDistrict != null ? a.SubDistrict.SubDistName : null,
-                    ForestProduceId = a.ForestProduceId,
-                    ForestProduceName = a.ForestProduce != null ? a.ForestProduce.Name : null,
-                })
-                .AsNoTracking()
-                .FirstOrDefaultAsync();
-        }
-
         public async Task<ApplicationDetail> AddApplicationDetailAsync(ApplicationDetail applicationDetail)
         {
             _context.ApplicationDetails.Add(applicationDetail);
@@ -188,115 +158,6 @@ namespace OfficerService.Repositories
 
             await _context.SaveChangesAsync();
             return application;
-        }
-
-        public async Task<List<SpeciesLogResponseDto>> GetSpeciesLogsByApplicationAsync(long applicationId)
-        {
-            var speciesLogs = new List<SpeciesLogResponseDto>();
-
-            // Get application details to find registration numbers
-            var applicationDetails = await _context.ApplicationDetails
-                .Where(ad => ad.ApplicationId == applicationId)
-                .ToListAsync();
-
-            foreach (var appDetail in applicationDetails)
-            {
-                if (string.IsNullOrEmpty(appDetail.RegistrationNo))
-                    continue;
-
-                // Round Timber
-                var roundTimberLogs = await _context.SpeciesLogsRoundTimbers
-                    .Where(log => log.TPRegistration == appDetail.RegistrationNo)
-                    .Include(log => log.Species)
-                    .Select(log => new SpeciesLogResponseDto
-                    {
-                        SpeciesLogId = log.Id,
-                        SpeciesId = log.SpeciesID,
-                        SpeciesName = log.Species.Name,
-                        NoOfLogs = log.LogsNo,
-                        MiddleGirthCm = log.Girth,
-                        LengthCm = log.Length,
-                        Quantity = log.Quantity,
-                        Volume = log.Volume,
-                        ForestProduceType = "RoundTimber"
-                    })
-                    .ToListAsync();
-                speciesLogs.AddRange(roundTimberLogs);
-
-                // Bamboo
-                var bambooLogs = await _context.SpeciesLogsBamboos
-                    .Where(log => log.TPRegistration == appDetail.RegistrationNo)
-                    .Include(log => log.Species)
-                    .Select(log => new SpeciesLogResponseDto
-                    {
-                        SpeciesLogId = log.Id,
-                        SpeciesId = log.SpeciesID,
-                        SpeciesName = log.Species.Name,
-                        GirthClass = log.GirthClass,
-                        Length = log.Length,
-                        Quantity = log.Quantity,
-                        Unit = log.Unit,
-                        Volume = log.Volume,
-                        ForestProduceType = "Bamboo"
-                    })
-                    .ToListAsync();
-                speciesLogs.AddRange(bambooLogs);
-
-                // Fuelwood
-                var fuelwoodLogs = await _context.SpeciesLogsFuelwoods
-                    .Where(log => log.TPRegistration == appDetail.RegistrationNo)
-                    .Include(log => log.Species)
-                    .Select(log => new SpeciesLogResponseDto
-                    {
-                        SpeciesLogId = log.Id,
-                        SpeciesId = log.SpeciesID,
-                        SpeciesName = log.Species.Name,
-                        Quantity = log.Quantity,
-                        Unit = log.Unit,
-                        ForestProduceType = "Fuelwood"
-                    })
-                    .ToListAsync();
-                speciesLogs.AddRange(fuelwoodLogs);
-
-                // Minor Forest Produce
-                var minorLogs = await _context.SpeciesLogsMinorForestProduces
-                    .Where(log => log.TPRegistration == appDetail.RegistrationNo)
-                    .Include(log => log.Species)
-                    .Select(log => new SpeciesLogResponseDto
-                    {
-                        SpeciesLogId = log.Id,
-                        SpeciesId = log.SpeciesID,
-                        SpeciesName = log.Species.Name,
-                        PlantPartID = log.PlantPartID,
-                        Quantity = log.Quantity,
-                        Unit = log.Unit,
-                        ForestProduceType = "Minor"
-                    })
-                    .ToListAsync();
-                speciesLogs.AddRange(minorLogs);
-
-                // Sawn Timber
-                var sawnTimberLogs = await _context.SpeciesLogsSawnTimbers
-                    .Where(log => log.TPRegistration == appDetail.RegistrationNo)
-                    .Include(log => log.Species)
-                    .Select(log => new SpeciesLogResponseDto
-                    {
-                        SpeciesLogId = log.Id,
-                        SpeciesId = log.SpeciesID,
-                        SpeciesName = log.Species.Name,
-                        NoOfPieces = log.LogsNo,
-                        LengthCm = log.Length,
-                        Width = log.Width,
-                        Thickness = log.Thickness,
-                        Unit = log.Unit,
-                        Volume = log.Volume,
-                        ForestProduceType = "SawnTimber"
-                    })
-                    .ToListAsync();
-                speciesLogs.AddRange(sawnTimberLogs);
-            }
-
-            return speciesLogs;
         }
 
         public async Task<bool> DeleteSpeciesLogAsync(long speciesLogId, string forestProduceType)
@@ -405,6 +266,705 @@ namespace OfficerService.Repositories
             }
             catch (Exception)
             {
+                return false;
+            }
+        }
+
+
+        public async Task<List<SpeciesLogResponseDto>> GetSpeciesLogsByApplicationAsync(long applicationId)
+        {
+            var applicationDetails = await _context.ApplicationDetails
+                .Where(ad => ad.ApplicationId == applicationId)
+                .ToListAsync();
+
+            var allLogs = new List<SpeciesLogResponseDto>();
+
+            foreach (var appDetail in applicationDetails)
+            {
+                if (!string.IsNullOrEmpty(appDetail.RegistrationNo))
+                {
+                    var logs = await GetSpeciesLogsByRegistrationNoAsync(appDetail.RegistrationNo);
+                    allLogs.AddRange(logs);
+                }
+            }
+
+            return allLogs;
+        }
+
+        public async Task<ApplicationDetailsDto?> GetApplicationWithSpeciesLogsAsync(long applicationId)
+        {
+            try
+            {
+                _logger.LogInformation("Fetching application with species logs for ApplicationId: {ApplicationId}", applicationId);
+
+                // Get application master with all relationships
+                var application = await _context.ApplicationMasters
+                    .Include(a => a.State)
+                    .Include(a => a.District)
+                    .Include(a => a.SubDistrict)
+                    .Include(a => a.ForestProduce)
+                    .FirstOrDefaultAsync(a => a.ApplicationId == applicationId);
+
+                if (application == null)
+                {
+                    _logger.LogWarning("Application not found for ApplicationId: {ApplicationId}", applicationId);
+                    return null;
+                }
+
+                // Get application details with registration numbers
+                var applicationDetails = await _context.ApplicationDetails
+                    .Where(ad => ad.ApplicationId == applicationId)
+                    .Include(ad => ad.ApplicationCategory)
+                    .ToListAsync();
+
+                // Get species logs for all application details
+                var speciesLogs = new List<SpeciesLogResponseDto>();
+
+                foreach (var appDetail in applicationDetails)
+                {
+                    if (string.IsNullOrEmpty(appDetail.RegistrationNo)) continue;
+
+                    var logs = await GetSpeciesLogsByRegistrationNoAsync(appDetail.RegistrationNo);
+                    speciesLogs.AddRange(logs);
+                }
+
+                // Map to DTO
+                var applicationDto = new ApplicationDetailsDto
+                {
+                    ApplicationId = application.ApplicationId,
+                    Status = application.Status,
+                    ApplicationStatus = application.ApplicationStatus,
+                    CreateByUserId = application.CreateByUserId,
+                    CreateByUserName = application.CreateByUserName,
+                    CreatedDate = application.CreatedDate,
+                    StateId = application.StateId,
+                    StateName = application.State?.StName,
+                    DistrictId = application.DistrictId,
+                    DistrictName = application.District?.DistName,
+                    SubDistrictId = application.SubDistrictId,
+                    SubDistrictName = application.SubDistrict?.SubDistName,
+                    ForestProduceId = application.ForestProduceId,
+                    ForestProduceName = application.ForestProduce?.Name,
+                    Remarks = application.Remarks
+                };
+
+                // Add species logs to the DTO
+                applicationDto.SpeciesLogs = speciesLogs;
+
+                _logger.LogInformation("Successfully fetched application with {Count} species logs for ApplicationId: {ApplicationId}",
+                    speciesLogs.Count, applicationId);
+
+                return applicationDto;
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error fetching application with species logs for ApplicationId: {ApplicationId}", applicationId);
+                throw;
+            }
+        }
+
+        private async Task<List<SpeciesLogResponseDto>> GetSpeciesLogsByRegistrationNoAsync(string registrationNo)
+        {
+            var speciesLogs = new List<SpeciesLogResponseDto>();
+
+            // Round Timber
+            var roundTimberLogs = await _context.SpeciesLogsRoundTimbers
+                .Include(sl => sl.Species)
+                .Include(sl => sl.ForestProduce) // Add this
+                .Where(sl => sl.RegistrationNo == registrationNo)
+                .Select(sl => new SpeciesLogResponseDto
+                {
+                    SpeciesLogId = sl.Id,
+                    SpeciesId = sl.SpeciesID,
+                    ForestProduceId = sl.ForestProduceId, // Add this
+                    SpeciesName = sl.Species.Name,
+                    NoOfLogs = sl.LogsNo,
+                    MiddleGirthCm = sl.Girth,
+                    LengthCm = sl.Length,
+                    Quantity = sl.Quantity,
+                    Volume = sl.Volume,
+                    ForestProduceType = "RoundTimber"
+                })
+                .ToListAsync();
+            speciesLogs.AddRange(roundTimberLogs);
+
+            // Bamboo
+            var bambooLogs = await _context.SpeciesLogsBamboos
+                .Include(sl => sl.Species)
+                .Include(sl => sl.ForestProduce) // Add this
+                .Where(sl => sl.RegistrationNo == registrationNo)
+                .Select(sl => new SpeciesLogResponseDto
+                {
+                    SpeciesLogId = sl.Id,
+                    SpeciesId = sl.SpeciesID,
+                    ForestProduceId = sl.ForestProduceId, // Add this
+                    SpeciesName = sl.Species.Name,
+                    GirthClass = sl.GirthClass,
+                    Length = sl.Length,
+                    Quantity = sl.Quantity,
+                    Volume = sl.Volume,
+                    Unit = sl.Unit,
+                    ForestProduceType = "Bamboo"
+                })
+                .ToListAsync();
+            speciesLogs.AddRange(bambooLogs);
+
+            // Fuelwood
+            var fuelwoodLogs = await _context.SpeciesLogsFuelwoods
+                .Include(sl => sl.Species)
+                .Include(sl => sl.ForestProduce) // Add this
+                .Where(sl => sl.RegistrationNo == registrationNo)
+                .Select(sl => new SpeciesLogResponseDto
+                {
+                    SpeciesLogId = sl.Id,
+                    SpeciesId = sl.SpeciesID,
+                    ForestProduceId = sl.ForestProduceId, // Add this
+                    SpeciesName = sl.Species.Name,
+                    Quantity = sl.Quantity,
+                    Unit = sl.Unit,
+                    ForestProduceType = "Fuelwood"
+                })
+                .ToListAsync();
+            speciesLogs.AddRange(fuelwoodLogs);
+
+            // Minor Forest Produce
+            var minorLogs = await _context.SpeciesLogsMinorForestProduces
+                .Include(sl => sl.Species)
+                .Include(sl => sl.ForestProduce) // Add this
+                .Where(sl => sl.RegistrationNo == registrationNo)
+                .Select(sl => new SpeciesLogResponseDto
+                {
+                    SpeciesLogId = sl.Id,
+                    SpeciesId = sl.SpeciesID,
+                    ForestProduceId = sl.ForestProduceId, // Add this
+                    SpeciesName = sl.Species.Name,
+                    PlantPartID = sl.PlantPartID,
+                    Quantity = sl.Quantity,
+                    Unit = sl.Unit,
+                    ForestProduceType = "Minor"
+                })
+                .ToListAsync();
+            speciesLogs.AddRange(minorLogs);
+
+            // Sawn Timber
+            var sawnTimberLogs = await _context.SpeciesLogsSawnTimbers
+                .Include(sl => sl.Species)
+                .Include(sl => sl.ForestProduce) // Add this
+                .Where(sl => sl.RegistrationNo == registrationNo)
+                .Select(sl => new SpeciesLogResponseDto
+                {
+                    SpeciesLogId = sl.Id,
+                    SpeciesId = sl.SpeciesID,
+                    ForestProduceId = sl.ForestProduceId, // Add this
+                    SpeciesName = sl.Species.Name,
+                    NoOfPieces = sl.LogsNo,
+                    LengthCm = sl.Length,
+                    Width = sl.Width,
+                    Thickness = sl.Thickness,
+                    Volume = sl.Volume,
+                    Unit = sl.Unit,
+                    ForestProduceType = "SawnTimber"
+                })
+                .ToListAsync();
+            speciesLogs.AddRange(sawnTimberLogs);
+
+            return speciesLogs;
+        }
+
+        public async Task<ApplicationDetailsDto?> GetApplicationByIdAsyncs(long applicationId)
+        {
+            return await GetApplicationWithSpeciesLogsAsync(applicationId);
+        }
+
+        public async Task<SourceDestinationResponseDto> SaveProduceSourceAsync(SaveProduceSourceRequestDto request, int applicationCategoryId)
+        {
+            using var transaction = await _context.Database.BeginTransactionAsync();
+            try
+            {
+                _logger.LogInformation("Saving produce source for RegistrationNo: {RegistrationNo}, ApplicationCategory: {CategoryId}",
+                    request.RegistrationNo, applicationCategoryId);
+
+                long sourceId = 0;
+                int govDepotId = 0;
+                int latLongId = 0;
+
+                // 1. Save to appropriate source place table based on application category
+                if (applicationCategoryId == 1) // NOC
+                {
+                    var existingNocSource = await _context.NocSourcePlaces
+                        .FirstOrDefaultAsync(nsp => nsp.ApplicationId == request.RegistrationNo);
+
+                    if (existingNocSource != null)
+                    {
+                        // Update existing record
+                        existingNocSource.StateId = request.StateId;
+                        existingNocSource.CircleId = request.CircleId;
+                        existingNocSource.DivisionId = request.DivisionId;
+                        existingNocSource.RangeId = request.RangeId;
+                        existingNocSource.Address = request.Address;
+                        existingNocSource.PinCode = request.PinCode;
+                        existingNocSource.UpdatedDate = DateTime.UtcNow;
+
+                        _context.NocSourcePlaces.Update(existingNocSource);
+                        sourceId = existingNocSource.SourceId;
+                    }
+                    else
+                    {
+                        // Create new record
+                        var nocSourcePlace = new NocSourcePlace
+                        {
+                            ApplicationId = request.RegistrationNo,
+                            StateId = request.StateId,
+                            CircleId = request.CircleId,
+                            DivisionId = request.DivisionId,
+                            RangeId = request.RangeId,
+                            Address = request.Address,
+                            PinCode = request.PinCode,
+                            CreatedDate = DateTime.UtcNow
+                        };
+
+                        _context.NocSourcePlaces.Add(nocSourcePlace);
+                        await _context.SaveChangesAsync();
+                        sourceId = nocSourcePlace.SourceId;
+                    }
+                }
+                else if (applicationCategoryId == 2) // Transit Pass
+                {
+                    var existingTpSource = await _context.TpSourcePlaces
+                        .FirstOrDefaultAsync(tsp => tsp.ApplicationId == request.RegistrationNo);
+
+                    if (existingTpSource != null)
+                    {
+                        // Update existing record
+                        existingTpSource.StateId = request.StateId;
+                        existingTpSource.CircleId = request.CircleId;
+                        existingTpSource.DivisionId = request.DivisionId;
+                        existingTpSource.RangeId = request.RangeId;
+                        existingTpSource.Address = request.Address;
+                        existingTpSource.PinCode = request.PinCode;
+                        existingTpSource.UpdatedDate = DateTime.UtcNow;
+
+                        _context.TpSourcePlaces.Update(existingTpSource);
+                        sourceId = existingTpSource.SourceId;
+                    }
+                    else
+                    {
+                        // Create new record
+                        var tpSourcePlace = new TpSourcePlace
+                        {
+                            ApplicationId = request.RegistrationNo,
+                            StateId = request.StateId,
+                            CircleId = request.CircleId,
+                            DivisionId = request.DivisionId,
+                            RangeId = request.RangeId,
+                            Address = request.Address,
+                            PinCode = request.PinCode,
+                            CreatedDate = DateTime.UtcNow
+                        };
+
+                        _context.TpSourcePlaces.Add(tpSourcePlace);
+                        await _context.SaveChangesAsync();
+                        sourceId = tpSourcePlace.SourceId;
+                    }
+                }
+                else
+                {
+                    throw new Exception($"Unknown application category: {applicationCategoryId}");
+                }
+
+                // 2. Save Government Depot if applicable
+                if (request.PlaceObtained == "government_depot" &&
+                    !string.IsNullOrEmpty(request.GovernmentDepotName))
+                {
+                    var existingGovDepot = await _context.GovernmentDepots
+                        .FirstOrDefaultAsync(gd => gd.RegistrationNo == request.RegistrationNo &&
+                                                  gd.Type == "source");
+
+                    if (existingGovDepot != null)
+                    {
+                        // Update existing
+                        existingGovDepot.DepotName = request.GovernmentDepotName;
+                        existingGovDepot.Type = request.GovernmentDepotType;
+                        existingGovDepot.SourceType = "web";
+                        existingGovDepot.PlaceType = "government";
+                        existingGovDepot.UpdatedDate = DateTime.UtcNow;
+
+                        _context.GovernmentDepots.Update(existingGovDepot);
+                        govDepotId = existingGovDepot.GdId;
+                    }
+                    else
+                    {
+                        // Create new
+                        var governmentDepot = new GovernmentDepot
+                        {
+                            RegistrationNo = request.RegistrationNo,
+                            DepotName = request.GovernmentDepotName,
+                            Type = "source",
+                            SourceType = "web",
+                            PlaceType = "government",
+                            CreatedDate = DateTime.UtcNow
+                        };
+
+                        _context.GovernmentDepots.Add(governmentDepot);
+                        await _context.SaveChangesAsync();
+                        govDepotId = governmentDepot.GdId;
+                    }
+                }
+
+                // 3. Save Latitude/Longitude
+                if (!string.IsNullOrEmpty(request.Latitude) && !string.IsNullOrEmpty(request.Longitude))
+                {
+                    var existingLatLong = await _context.SourceLatLongs
+                        .FirstOrDefaultAsync(sll => sll.RegistrationNo == request.RegistrationNo);
+
+                    if (existingLatLong != null)
+                    {
+                        // Update existing
+                        existingLatLong.Latitude = request.Latitude;
+                        existingLatLong.Longitude = request.Longitude;
+                        existingLatLong.UpdatedDate = DateTime.UtcNow;
+
+                        _context.SourceLatLongs.Update(existingLatLong);
+                        latLongId = existingLatLong.LatLongId;
+                    }
+                    else
+                    {
+                        // Create new
+                        var sourceLatLong = new SourceLatLong
+                        {
+                            RegistrationNo = request.RegistrationNo,
+                            Latitude = request.Latitude,
+                            Longitude = request.Longitude,
+                            CreatedDate = DateTime.UtcNow
+                        };
+
+                        _context.SourceLatLongs.Add(sourceLatLong);
+                        await _context.SaveChangesAsync();
+                        latLongId = sourceLatLong.LatLongId;
+                    }
+                }
+
+                await transaction.CommitAsync();
+
+                return new SourceDestinationResponseDto
+                {
+                    Success = true,
+                    Message = "Produce source details saved successfully",
+                    SourceId = sourceId,
+                    GovernmentDepotId = govDepotId,
+                    LatLongId = latLongId
+                };
+            }
+            catch (Exception ex)
+            {
+                await transaction.RollbackAsync();
+                _logger.LogError(ex, "Error saving produce source for RegistrationNo: {RegistrationNo}",
+                    request.RegistrationNo);
+                throw;
+            }
+        }
+
+        public async Task<SourceDestinationResponseDto> SaveDestinationAsync(SaveDestinationRequestDto request, int applicationCategoryId)
+        {
+            using var transaction = await _context.Database.BeginTransactionAsync();
+            try
+            {
+                _logger.LogInformation("Saving destination for RegistrationNo: {RegistrationNo}, ApplicationCategory: {CategoryId}",
+                    request.RegistrationNo, applicationCategoryId);
+
+                long destinationId = 0;
+                int govDepotId = 0;
+
+                // 1. Save to appropriate destination place table based on application category
+                if (applicationCategoryId == 1) // NOC
+                {
+                    var existingNocDest = await _context.NocDestinationPlaces
+                        .FirstOrDefaultAsync(ndp => ndp.ApplicationId == request.RegistrationNo);
+
+                    if (existingNocDest != null)
+                    {
+                        // Update existing record
+                        existingNocDest.StateId = request.StateId;
+                        existingNocDest.CircleId = request.CircleId;
+                        existingNocDest.DivisionId = request.DivisionId;
+                        existingNocDest.RangeId = request.RangeId;
+                        existingNocDest.Address = request.Address;
+                        existingNocDest.PinCode = request.PinCode;
+                        existingNocDest.UpdatedDate = DateTime.UtcNow;
+
+                        _context.NocDestinationPlaces.Update(existingNocDest);
+                        destinationId = existingNocDest.DestinationId;
+                    }
+                    else
+                    {
+                        // Create new record
+                        var nocDestination = new NocDestinationPlace
+                        {
+                            ApplicationId = request.RegistrationNo,
+                            StateId = request.StateId,
+                            CircleId = request.CircleId,
+                            DivisionId = request.DivisionId,
+                            RangeId = request.RangeId,
+                            Address = request.Address,
+                            PinCode = request.PinCode,
+                            CreatedDate = DateTime.UtcNow
+                        };
+
+                        _context.NocDestinationPlaces.Add(nocDestination);
+                        await _context.SaveChangesAsync();
+                        destinationId = nocDestination.DestinationId;
+                    }
+                }
+                else if (applicationCategoryId == 2) // Transit Pass
+                {
+                    var existingTpDest = await _context.TpDestinationPlaces
+                        .FirstOrDefaultAsync(tdp => tdp.ApplicationId == request.RegistrationNo);
+
+                    if (existingTpDest != null)
+                    {
+                        // Update existing record
+                        existingTpDest.StateId = request.StateId;
+                        existingTpDest.CircleId = request.CircleId;
+                        existingTpDest.DivisionId = request.DivisionId;
+                        existingTpDest.RangeId = request.RangeId;
+                        existingTpDest.Address = request.Address;
+                        existingTpDest.PinCode = request.PinCode;
+                        existingTpDest.UpdatedDate = DateTime.UtcNow;
+
+                        _context.TpDestinationPlaces.Update(existingTpDest);
+                        destinationId = existingTpDest.DestinationId;
+                    }
+                    else
+                    {
+                        // Create new record
+                        var tpDestination = new TpDestinationPlace
+                        {
+                            ApplicationId = request.RegistrationNo,
+                            StateId = request.StateId,
+                            CircleId = request.CircleId,
+                            DivisionId = request.DivisionId,
+                            RangeId = request.RangeId,
+                            Address = request.Address,
+                            PinCode = request.PinCode,
+                            CreatedDate = DateTime.UtcNow
+                        };
+
+                        _context.TpDestinationPlaces.Add(tpDestination);
+                        await _context.SaveChangesAsync();
+                        destinationId = tpDestination.DestinationId;
+                    }
+                }
+                else
+                {
+                    throw new Exception($"Unknown application category: {applicationCategoryId}");
+                }
+
+                // 2. Save Government Depot if applicable
+                if (request.DestinationPlace == "government_depot" &&
+                    !string.IsNullOrEmpty(request.GovernmentDepotName))
+                {
+                    var existingGovDepot = await _context.GovernmentDepots
+                        .FirstOrDefaultAsync(gd => gd.RegistrationNo == request.RegistrationNo &&
+                                                  gd.Type == "destination");
+
+                    if (existingGovDepot != null)
+                    {
+                        // Update existing
+                        existingGovDepot.DepotName = request.GovernmentDepotName;
+                        existingGovDepot.Type = request.GovernmentDepotType;
+                        existingGovDepot.SourceType = "web";
+                        existingGovDepot.PlaceType = "government";
+                        existingGovDepot.UpdatedDate = DateTime.UtcNow;
+
+                        _context.GovernmentDepots.Update(existingGovDepot);
+                        govDepotId = existingGovDepot.GdId;
+                    }
+                    else
+                    {
+                        // Create new
+                        var governmentDepot = new GovernmentDepot
+                        {
+                            RegistrationNo = request.RegistrationNo,
+                            DepotName = request.GovernmentDepotName,
+                            Type = "destination",
+                            SourceType = "web",
+                            PlaceType = "government",
+                            CreatedDate = DateTime.UtcNow
+                        };
+
+                        _context.GovernmentDepots.Add(governmentDepot);
+                        await _context.SaveChangesAsync();
+                        govDepotId = governmentDepot.GdId;
+                    }
+                }
+
+                await transaction.CommitAsync();
+
+                return new SourceDestinationResponseDto
+                {
+                    Success = true,
+                    Message = "Destination details saved successfully",
+                    DestinationId = destinationId,
+                    GovernmentDepotId = govDepotId
+                };
+            }
+            catch (Exception ex)
+            {
+                await transaction.RollbackAsync();
+                _logger.LogError(ex, "Error saving destination for RegistrationNo: {RegistrationNo}",
+                    request.RegistrationNo);
+                throw;
+            }
+        }
+
+        public async Task<SourceDestinationDetailsDto?> GetSourceDestinationDetailsAsync(long applicationId, string registrationNo, int applicationCategoryId)
+        {
+            try
+            {
+                var details = new SourceDestinationDetailsDto();
+                var produceSource = new ProduceSourceDto();
+                var destination = new DestinationDto();
+
+                // Get Produce Source Details
+                if (applicationCategoryId == 1) // NOC
+                {
+                    var nocSource = await _context.NocSourcePlaces
+                        .FirstOrDefaultAsync(nsp => nsp.ApplicationId == registrationNo);
+
+                    if (nocSource != null)
+                    {
+                        produceSource.StateId = nocSource.StateId;
+                        produceSource.CircleId = nocSource.CircleId;
+                        produceSource.DivisionId = nocSource.DivisionId;
+                        produceSource.RangeId = nocSource.RangeId;
+                        produceSource.Address = nocSource.Address;
+                        produceSource.PinCode = nocSource.PinCode;
+                    }
+                }
+                else if (applicationCategoryId == 2) // Transit Pass
+                {
+                    var tpSource = await _context.TpSourcePlaces
+                        .FirstOrDefaultAsync(tsp => tsp.ApplicationId == registrationNo);
+
+                    if (tpSource != null)
+                    {
+                        produceSource.StateId = tpSource.StateId;
+                        produceSource.CircleId = tpSource.CircleId;
+                        produceSource.DivisionId = tpSource.DivisionId;
+                        produceSource.RangeId = tpSource.RangeId;
+                        produceSource.Address = tpSource.Address;
+                        produceSource.PinCode = tpSource.PinCode;
+                    }
+                }
+
+                // Get Destination Details
+                if (applicationCategoryId == 1) // NOC
+                {
+                    var nocDest = await _context.NocDestinationPlaces
+                        .FirstOrDefaultAsync(ndp => ndp.ApplicationId == registrationNo);
+
+                    if (nocDest != null)
+                    {
+                        destination.StateId = nocDest.StateId;
+                        destination.CircleId = nocDest.CircleId;
+                        destination.DivisionId = nocDest.DivisionId;
+                        destination.RangeId = nocDest.RangeId;
+                        destination.Address = nocDest.Address;
+                        destination.PinCode = nocDest.PinCode;
+                    }
+                }
+                else if (applicationCategoryId == 2) // Transit Pass
+                {
+                    var tpDest = await _context.TpDestinationPlaces
+                        .FirstOrDefaultAsync(tdp => tdp.ApplicationId == registrationNo);
+
+                    if (tpDest != null)
+                    {
+                        destination.StateId = tpDest.StateId;
+                        destination.CircleId = tpDest.CircleId;
+                        destination.DivisionId = tpDest.DivisionId;
+                        destination.RangeId = tpDest.RangeId;
+                        destination.Address = tpDest.Address;
+                        destination.PinCode = tpDest.PinCode;
+                    }
+                }
+
+                // Get Government Depot Info for Source
+                var sourceGovDepot = await _context.GovernmentDepots
+                    .FirstOrDefaultAsync(gd => gd.RegistrationNo == registrationNo &&
+                                              gd.Type == "source");
+
+                if (sourceGovDepot != null)
+                {
+                    produceSource.PlaceObtained = "government_depot";
+                    produceSource.GovernmentDepotName = sourceGovDepot.DepotName;
+                    produceSource.GovernmentDepotType = sourceGovDepot.Type;
+                }
+
+                // Get Government Depot Info for Destination
+                var destGovDepot = await _context.GovernmentDepots
+                    .FirstOrDefaultAsync(gd => gd.RegistrationNo == registrationNo &&
+                                              gd.Type == "destination");
+
+                if (destGovDepot != null)
+                {
+                    destination.DestinationPlace = "government_depot";
+                    destination.GovernmentDepotName = destGovDepot.DepotName;
+                    destination.GovernmentDepotType = destGovDepot.Type;
+                }
+
+                // Get Latitude/Longitude
+                var latLong = await _context.SourceLatLongs
+                    .FirstOrDefaultAsync(sll => sll.RegistrationNo == registrationNo);
+
+                if (latLong != null)
+                {
+                    produceSource.Latitude = latLong.Latitude;
+                    produceSource.Longitude = latLong.Longitude;
+                }
+
+                details.ProduceSource = produceSource;
+                details.Destination = destination;
+
+                return details;
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error getting source/destination details for RegistrationNo: {RegistrationNo}",
+                    registrationNo);
+                return null;
+            }
+        }
+
+        public async Task<bool> CheckSourceDestinationExistsAsync(string registrationNo, int applicationCategoryId)
+        {
+            try
+            {
+                if (applicationCategoryId == 1) // NOC
+                {
+                    var sourceExists = await _context.NocSourcePlaces
+                        .AnyAsync(nsp => nsp.ApplicationId == registrationNo);
+                    var destExists = await _context.NocDestinationPlaces
+                        .AnyAsync(ndp => ndp.ApplicationId == registrationNo);
+
+                    return sourceExists && destExists;
+                }
+                else if (applicationCategoryId == 2) // Transit Pass
+                {
+                    var sourceExists = await _context.TpSourcePlaces
+                        .AnyAsync(tsp => tsp.ApplicationId == registrationNo);
+                    var destExists = await _context.TpDestinationPlaces
+                        .AnyAsync(tdp => tdp.ApplicationId == registrationNo);
+
+                    return sourceExists && destExists;
+                }
+
+                return false;
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error checking source/destination existence for RegistrationNo: {RegistrationNo}",
+                    registrationNo);
                 return false;
             }
         }

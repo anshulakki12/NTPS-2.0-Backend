@@ -17,6 +17,10 @@ namespace OfficerService.Services
         Task<List<SpeciesLogResponseDto>> GetSpeciesLogsByApplicationAsync(long applicationId);
         Task<ProduceDetailResponseDto> UpdateProduceDetailsAsync(UpdateProduceDetailRequestDto request);
         Task<bool> DeleteSpeciesLogAsync(long speciesLogId, string forestProduceType);
+        Task<ApplicationDetailsDto?> GetApplicationWithSpeciesLogsAsync(long applicationId);
+        Task<SourceDestinationResponseDto> SaveProduceSourceAsync(SaveProduceSourceRequestDto request);
+        Task<SourceDestinationResponseDto> SaveDestinationAsync(SaveDestinationRequestDto request);
+        Task<SourceDestinationDetailsDto?> GetSourceDestinationDetailsAsync(long applicationId, int forestProduceId);
 
     }
 }

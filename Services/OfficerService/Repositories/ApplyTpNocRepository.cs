@@ -14,10 +14,10 @@ namespace OfficerService.Repositories
             _context = context;
         }
 
-        public async Task<List<ForestProduceDto>> GetForestProducesByStateAsync(int stateId)
+        public async Task<List<ForestProduceDto>> GetForestProducesByStateAsync(int stateCode)
         {
             var forestProduces = await _context.SpeciesMapping
-                .Where(sm => sm.StateId == stateId && sm.IsActive)
+                .Where(sm => sm.IsActive && sm.StateId == stateCode)
                 .Include(sm => sm.ForestProduce)
                 .Select(sm => new ForestProduceDto
                 {
@@ -34,6 +34,7 @@ namespace OfficerService.Repositories
             return forestProduces;
         }
 
+
         public async Task<List<SpeciesDto>> GetSpeciesByStateAndForestProduceAsync(int stateId, int forestProduceId)
         {
             var species = await _context.SpeciesMapping
@@ -44,7 +45,8 @@ namespace OfficerService.Repositories
                 .Select(sm => new SpeciesDto
                 {
                     SpeciesID = sm.MasterSpecies.SpeciesID,
-                    Name = sm.MasterSpecies.Name
+                    Name = sm.MasterSpecies.Name,
+                    CategoryId=sm.CategoryId
                 })
                 .Distinct()
                 .ToListAsync();
@@ -70,10 +72,10 @@ namespace OfficerService.Repositories
             return mappings;
         }
 
-        public async Task<List<District>> GetDistrictsByState(int stateId)
+        public async Task<List<District>> GetDistrictsByState(int stateCode)
         {
             return await _context.Districts
-                .Where(d => d.StCode == stateId)
+                .Where(d => d.StCode == stateCode)
                 .OrderBy(d => d.DistName)
                 .ToListAsync();
         }

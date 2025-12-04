@@ -58,7 +58,7 @@ namespace OfficerService.Controllers
                 // ✅ Hash decrypted password using SHA-512
                 using SHA512 sha = SHA512.Create();
                 var hashBytes = sha.ComputeHash(Encoding.UTF8.GetBytes(decryptedPassword));
-                string hashedPassword = Convert.ToBase64String(hashBytes);
+                string hashedPassword = Convert.ToHexString(hashBytes);
 
                 // ✅ Validate credentials using repository method
                 var isValid = await _loginRepository.ValidateOfficerCredentialsAsync(loginId, hashedPassword);

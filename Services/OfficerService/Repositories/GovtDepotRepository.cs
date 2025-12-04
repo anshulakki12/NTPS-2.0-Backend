@@ -59,8 +59,40 @@ namespace OfficerService.Repositories
                 .FirstOrDefaultAsync();
         }
 
+        public async Task<IEnumerable<GovtDepotResponseDto>> GetGovtDepotsByStateAsync(int stateId)
+        {
+            return await _context.MasterGovDepots
+                .Where(d => d.StateId == stateId)
+                .Include(d => d.State)
+                .Select(d => new GovtDepotResponseDto
+                {
+                    GovDepotId = d.GovDepotId,
+                    StateId = d.StateId,
+                    StateName = d.State.StName,
+                    CircleId = d.CircleId,
+                    DivisionId = d.DivisionId,
+                    RangeId = d.RangeId,
+                    DepotName = d.DepotName,
+                    Address = d.Address,
+                    PinCode = d.PinCode,
+                    Type = d.Type,
+                    CreatedDate = d.CreatedDate
+                })
+                .OrderBy(d => d.DepotName)
+                .ToListAsync();
+        }
+
         public async Task<GovtDepotResponseDto> CreateGovtDepotAsync(CreateGovtDepotDto createDto)
         {
+            // Check if depot already exists
+            var exists = await GovtDepotExistsAsync(createDto.DepotName, createDto.StateId,
+                createDto.CircleId, createDto.DivisionId, createDto.RangeId);
+
+            if (exists)
+            {
+                throw new InvalidOperationException($"Government depot '{createDto.DepotName}' already exists in the specified location.");
+            }
+
             var depot = new MasterGovDepot
             {
                 StateId = createDto.StateId,
@@ -89,6 +121,15 @@ namespace OfficerService.Repositories
             if (depot == null)
             {
                 throw new KeyNotFoundException($"Govt depot with ID {updateDto.GovDepotId} not found.");
+            }
+
+            // Check if depot already exists (excluding current depot)
+            var exists = await GovtDepotExistsAsync(updateDto.DepotName, updateDto.StateId,
+                updateDto.CircleId, updateDto.DivisionId, updateDto.RangeId, updateDto.GovDepotId);
+
+            if (exists)
+            {
+                throw new InvalidOperationException($"Another government depot with name '{updateDto.DepotName}' already exists in the specified location.");
             }
 
             depot.StateId = updateDto.StateId;
@@ -121,7 +162,7 @@ namespace OfficerService.Repositories
         public async Task<bool> GovtDepotExistsAsync(string depotName, int stateId, int circleId, int divisionId, int rangeId, int? excludeId = null)
         {
             var query = _context.MasterGovDepots
-                .Where(d => d.DepotName == depotName &&
+                .Where(d => d.DepotName.ToLower() == depotName.ToLower() &&
                            d.StateId == stateId &&
                            d.CircleId == circleId &&
                            d.DivisionId == divisionId &&
@@ -136,7 +177,6 @@ namespace OfficerService.Repositories
         }
 
         // Dropdown Data Methods
-
         public async Task<IEnumerable<State>> GetAllStatesAsync()
         {
             return await _context.States

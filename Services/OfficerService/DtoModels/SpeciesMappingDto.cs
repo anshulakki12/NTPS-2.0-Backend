@@ -91,6 +91,7 @@ namespace OfficerService.DTOs
     {
         public int SpeciesID { get; set; }
         public string Name { get; set; }
+        public int CategoryId { get; set; }
     }
 
     public class CreateGovtDepotDto

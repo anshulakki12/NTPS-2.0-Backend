@@ -17,5 +17,13 @@ namespace OfficerService.Repositories
         Task<List<SpeciesLogResponseDto>> GetSpeciesLogsByApplicationAsync(long applicationId);
         Task<bool> DeleteSpeciesLogAsync(long speciesLogId, string forestProduceType);
         Task<bool> UpdateSpeciesLogAsync(UpdateProduceDetailDto detail, string forestProduceType);
+
+        // Add this method for getting complete application data with species logs
+        Task<ApplicationDetailsDto?> GetApplicationWithSpeciesLogsAsync(long applicationId);
+
+        Task<SourceDestinationResponseDto> SaveProduceSourceAsync(SaveProduceSourceRequestDto request, int applicationCategoryId);
+        Task<SourceDestinationResponseDto> SaveDestinationAsync(SaveDestinationRequestDto request, int applicationCategoryId);
+        Task<SourceDestinationDetailsDto?> GetSourceDestinationDetailsAsync(long applicationId, string registrationNo, int applicationCategoryId);
+        Task<bool> CheckSourceDestinationExistsAsync(string registrationNo, int applicationCategoryId);
     }
 }

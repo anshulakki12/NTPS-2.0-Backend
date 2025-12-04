@@ -64,6 +64,13 @@ builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
     });
 var app = builder.Build();
 
+// --- Migrations---
+using (var scope = app.Services.CreateScope())
+{
+    var db = scope.ServiceProvider.GetRequiredService<AppDbContext>();
+    db.Database.Migrate();
+}
+
 // 2️⃣ Use Middleware (correct order)
 app.UseCors("AllowAngular");
 app.UseRouting();

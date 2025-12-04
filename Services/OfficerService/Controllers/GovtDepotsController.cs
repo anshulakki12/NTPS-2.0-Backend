@@ -55,6 +55,21 @@ namespace OfficerService.Controllers
             }
         }
 
+        [HttpGet("GetGovtDepotsByState/{stateId}")]
+        public async Task<ActionResult<IEnumerable<GovtDepotResponseDto>>> GetGovtDepotsByState(int stateId)
+        {
+            try
+            {
+                var depots = await _repository.GetGovtDepotsByStateAsync(stateId);
+                return Ok(depots);
+            }
+            catch (System.Exception ex)
+            {
+                _logger.LogError(ex, "Error occurred while getting government depots for state ID {StateId}", stateId);
+                return StatusCode(500, "An error occurred while retrieving government depots");
+            }
+        }
+
         [HttpPost("CreateGovtDepot")]
         public async Task<ActionResult<GovtDepotResponseDto>> CreateGovtDepot(CreateGovtDepotDto createDto)
         {
@@ -128,6 +143,21 @@ namespace OfficerService.Controllers
             {
                 _logger.LogError(ex, "Error occurred while deleting government depot with ID {Id}", id);
                 return StatusCode(500, "An error occurred while deleting the government depot");
+            }
+        }
+
+        [HttpGet("GetAllStates")]
+        public async Task<ActionResult<IEnumerable<State>>> GetAllStates()
+        {
+            try
+            {
+                var states = await _repository.GetAllStatesAsync();
+                return Ok(states);
+            }
+            catch (System.Exception ex)
+            {
+                _logger.LogError(ex, "Error occurred while getting all states");
+                return StatusCode(500, "An error occurred while retrieving states");
             }
         }
     }

@@ -10,7 +10,7 @@ namespace AuthenticationService.Services
             // SHA512 hashing (you can switch to BCrypt/Argon2 later)
             using var sha = SHA512.Create();
             var bytes = sha.ComputeHash(Encoding.UTF8.GetBytes(password));
-            return Convert.ToBase64String(bytes);
+            return Convert.ToHexString(bytes);
         }
 
         public bool VerifyPassword(string password, string hashedPassword)

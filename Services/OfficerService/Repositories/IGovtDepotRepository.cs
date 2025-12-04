@@ -9,6 +9,7 @@ namespace OfficerService.Repositories
         // Govt Depot Master Methods
         Task<IEnumerable<GovtDepotResponseDto>> GetAllGovtDepotsAsync();
         Task<GovtDepotResponseDto> GetGovtDepotByIdAsync(int id);
+        Task<IEnumerable<GovtDepotResponseDto>> GetGovtDepotsByStateAsync(int stateId);
         Task<GovtDepotResponseDto> CreateGovtDepotAsync(CreateGovtDepotDto createDto);
         Task<GovtDepotResponseDto> UpdateGovtDepotAsync(UpdateGovtDepotDto updateDto);
         Task<bool> DeleteGovtDepotAsync(int id);

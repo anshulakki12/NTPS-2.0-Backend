@@ -3,6 +3,7 @@ using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using OfficerService.Data;
 
@@ -11,9 +12,11 @@ using OfficerService.Data;
 namespace OfficerService.Migrations
 {
     [DbContext(typeof(AppDbContext))]
-    partial class AppDbContextModelSnapshot : ModelSnapshot
+    [Migration("20251125083758_addtablesapplication")]
+    partial class addtablesapplication
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -260,23 +263,23 @@ namespace OfficerService.Migrations
                         .HasColumnName("Log_Number");
 
                     b.Property<string>("PlaceType")
-                        .HasMaxLength(50)
-                        .HasColumnType("nvarchar(50)")
+                        .HasMaxLength(1)
+                        .HasColumnType("nvarchar(1)")
                         .HasColumnName("Place");
-
-                    b.Property<string>("RegistrationNo")
-                        .HasMaxLength(100)
-                        .HasColumnType("nvarchar(100)")
-                        .HasColumnName("Registration_No");
 
                     b.Property<string>("SourceType")
                         .HasMaxLength(10)
                         .HasColumnType("nvarchar(10)")
                         .HasColumnName("source_Type");
 
+                    b.Property<string>("TPRegistration")
+                        .HasMaxLength(100)
+                        .HasColumnType("nvarchar(100)")
+                        .HasColumnName("TP_Registration");
+
                     b.Property<string>("Type")
-                        .HasMaxLength(50)
-                        .HasColumnType("nvarchar(50)")
+                        .HasMaxLength(1)
+                        .HasColumnType("nvarchar(1)")
                         .HasColumnName("Type");
 
                     b.Property<DateTime?>("UpdatedDate")
@@ -984,114 +987,6 @@ namespace OfficerService.Migrations
                     b.ToTable("Master_Zone");
                 });
 
-            modelBuilder.Entity("OfficerService.Models.NocDestinationPlace", b =>
-                {
-                    b.Property<long>("DestinationId")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("bigint")
-                        .HasColumnName("Destination_Id");
-
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<long>("DestinationId"));
-
-                    b.Property<string>("Address")
-                        .HasMaxLength(500)
-                        .HasColumnType("nvarchar(500)")
-                        .HasColumnName("Address");
-
-                    b.Property<string>("ApplicationId")
-                        .IsRequired()
-                        .HasMaxLength(100)
-                        .HasColumnType("nvarchar(100)")
-                        .HasColumnName("Application_Id");
-
-                    b.Property<int>("CircleId")
-                        .HasColumnType("int")
-                        .HasColumnName("Circle_Id");
-
-                    b.Property<DateTime>("CreatedDate")
-                        .HasColumnType("datetime2")
-                        .HasColumnName("Created_Date");
-
-                    b.Property<int>("DivisionId")
-                        .HasColumnType("int")
-                        .HasColumnName("Division_Id");
-
-                    b.Property<string>("PinCode")
-                        .HasMaxLength(10)
-                        .HasColumnType("nvarchar(10)")
-                        .HasColumnName("Pincode");
-
-                    b.Property<int>("RangeId")
-                        .HasColumnType("int")
-                        .HasColumnName("Range_Id");
-
-                    b.Property<int>("StateId")
-                        .HasColumnType("int")
-                        .HasColumnName("State_Id");
-
-                    b.Property<DateTime?>("UpdatedDate")
-                        .HasColumnType("datetime2")
-                        .HasColumnName("Updated_Date");
-
-                    b.HasKey("DestinationId");
-
-                    b.ToTable("Noc_Destination_Place");
-                });
-
-            modelBuilder.Entity("OfficerService.Models.NocSourcePlace", b =>
-                {
-                    b.Property<long>("SourceId")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("bigint")
-                        .HasColumnName("Source_Id");
-
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<long>("SourceId"));
-
-                    b.Property<string>("Address")
-                        .HasMaxLength(500)
-                        .HasColumnType("nvarchar(500)")
-                        .HasColumnName("Address");
-
-                    b.Property<string>("ApplicationId")
-                        .IsRequired()
-                        .HasMaxLength(100)
-                        .HasColumnType("nvarchar(100)")
-                        .HasColumnName("Application_Id");
-
-                    b.Property<int>("CircleId")
-                        .HasColumnType("int")
-                        .HasColumnName("Circle_Id");
-
-                    b.Property<DateTime>("CreatedDate")
-                        .HasColumnType("datetime2")
-                        .HasColumnName("Created_Date");
-
-                    b.Property<int>("DivisionId")
-                        .HasColumnType("int")
-                        .HasColumnName("Division_Id");
-
-                    b.Property<string>("PinCode")
-                        .HasMaxLength(10)
-                        .HasColumnType("nvarchar(10)")
-                        .HasColumnName("Pincode");
-
-                    b.Property<int>("RangeId")
-                        .HasColumnType("int")
-                        .HasColumnName("Range_Id");
-
-                    b.Property<int>("StateId")
-                        .HasColumnType("int")
-                        .HasColumnName("State_Id");
-
-                    b.Property<DateTime?>("UpdatedDate")
-                        .HasColumnType("datetime2")
-                        .HasColumnName("Updated_Date");
-
-                    b.HasKey("SourceId");
-
-                    b.ToTable("Noc_source_place");
-                });
-
             modelBuilder.Entity("OfficerService.Models.OfficerDetails", b =>
                 {
                     b.Property<int>("OfficerDetailId")
@@ -1406,10 +1301,10 @@ namespace OfficerService.Migrations
                         .HasColumnType("nvarchar(25)")
                         .HasColumnName("Longitude");
 
-                    b.Property<string>("RegistrationNo")
+                    b.Property<string>("TPRegistration")
                         .HasMaxLength(100)
                         .HasColumnType("nvarchar(100)")
-                        .HasColumnName("Registration_No");
+                        .HasColumnName("TP_Registration");
 
                     b.Property<DateTime?>("UpdatedDate")
                         .HasColumnType("datetime2")
@@ -1429,17 +1324,9 @@ namespace OfficerService.Migrations
 
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<long>("Id"));
 
-                    b.Property<long?>("ApplicationId")
-                        .HasColumnType("bigint")
-                        .HasColumnName("Application_Id");
-
                     b.Property<DateTime>("CreatedDate")
                         .HasColumnType("datetime2")
                         .HasColumnName("Created_Date");
-
-                    b.Property<int>("ForestProduceId")
-                        .HasColumnType("int")
-                        .HasColumnName("ForestProduceId");
 
                     b.Property<decimal>("GirthClass")
                         .HasColumnType("decimal(18,2)")
@@ -1453,15 +1340,15 @@ namespace OfficerService.Migrations
                         .HasColumnType("decimal(18,2)")
                         .HasColumnName("Quantity");
 
-                    b.Property<string>("RegistrationNo")
-                        .IsRequired()
-                        .HasMaxLength(100)
-                        .HasColumnType("nvarchar(100)")
-                        .HasColumnName("Registration_No");
-
                     b.Property<int>("SpeciesID")
                         .HasColumnType("int")
                         .HasColumnName("Species_ID");
+
+                    b.Property<string>("TPRegistration")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("nvarchar(100)")
+                        .HasColumnName("TP_Registration");
 
                     b.Property<string>("Unit")
                         .IsRequired()
@@ -1474,8 +1361,6 @@ namespace OfficerService.Migrations
                         .HasColumnName("Volume");
 
                     b.HasKey("Id");
-
-                    b.HasIndex("ForestProduceId");
 
                     b.HasIndex("SpeciesID");
 
@@ -1491,31 +1376,23 @@ namespace OfficerService.Migrations
 
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<long>("Id"));
 
-                    b.Property<long?>("ApplicationId")
-                        .HasColumnType("bigint")
-                        .HasColumnName("Application_Id");
-
                     b.Property<DateTime>("CreatedDate")
                         .HasColumnType("datetime2")
                         .HasColumnName("Created_Date");
-
-                    b.Property<int>("ForestProduceId")
-                        .HasColumnType("int")
-                        .HasColumnName("ForestProduceId");
 
                     b.Property<decimal>("Quantity")
                         .HasColumnType("decimal(18,2)")
                         .HasColumnName("Quantity");
 
-                    b.Property<string>("RegistrationNo")
-                        .IsRequired()
-                        .HasMaxLength(100)
-                        .HasColumnType("nvarchar(100)")
-                        .HasColumnName("Registration_No");
-
                     b.Property<int>("SpeciesID")
                         .HasColumnType("int")
                         .HasColumnName("Species_ID");
+
+                    b.Property<string>("TPRegistration")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("nvarchar(100)")
+                        .HasColumnName("TP_Registration");
 
                     b.Property<string>("Unit")
                         .IsRequired()
@@ -1524,8 +1401,6 @@ namespace OfficerService.Migrations
                         .HasColumnName("Unit");
 
                     b.HasKey("Id");
-
-                    b.HasIndex("ForestProduceId");
 
                     b.HasIndex("SpeciesID");
 
@@ -1541,17 +1416,9 @@ namespace OfficerService.Migrations
 
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<long>("Id"));
 
-                    b.Property<long?>("ApplicationId")
-                        .HasColumnType("bigint")
-                        .HasColumnName("Application_Id");
-
                     b.Property<DateTime>("CreatedDate")
                         .HasColumnType("datetime2")
                         .HasColumnName("Created_Date");
-
-                    b.Property<int>("ForestProduceId")
-                        .HasColumnType("int")
-                        .HasColumnName("ForestProduceId");
 
                     b.Property<int>("PlantPartID")
                         .HasColumnType("int")
@@ -1561,15 +1428,15 @@ namespace OfficerService.Migrations
                         .HasColumnType("decimal(18,2)")
                         .HasColumnName("Quantity");
 
-                    b.Property<string>("RegistrationNo")
-                        .IsRequired()
-                        .HasMaxLength(100)
-                        .HasColumnType("nvarchar(100)")
-                        .HasColumnName("Registration_No");
-
                     b.Property<int>("SpeciesID")
                         .HasColumnType("int")
                         .HasColumnName("Species_ID");
+
+                    b.Property<string>("TPRegistration")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("nvarchar(100)")
+                        .HasColumnName("TP_Registration");
 
                     b.Property<string>("Unit")
                         .IsRequired()
@@ -1578,8 +1445,6 @@ namespace OfficerService.Migrations
                         .HasColumnName("Unit");
 
                     b.HasKey("Id");
-
-                    b.HasIndex("ForestProduceId");
 
                     b.HasIndex("SpeciesID");
 
@@ -1595,17 +1460,9 @@ namespace OfficerService.Migrations
 
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<long>("Id"));
 
-                    b.Property<long?>("ApplicationId")
-                        .HasColumnType("bigint")
-                        .HasColumnName("Application_Id");
-
                     b.Property<DateTime>("CreatedDate")
                         .HasColumnType("datetime2")
                         .HasColumnName("Created_Date");
-
-                    b.Property<int>("ForestProduceId")
-                        .HasColumnType("int")
-                        .HasColumnName("ForestProduceId");
 
                     b.Property<decimal>("Girth")
                         .HasColumnType("decimal(18,2)")
@@ -1623,23 +1480,21 @@ namespace OfficerService.Migrations
                         .HasColumnType("decimal(18,2)")
                         .HasColumnName("Quantity");
 
-                    b.Property<string>("RegistrationNo")
-                        .IsRequired()
-                        .HasMaxLength(100)
-                        .HasColumnType("nvarchar(100)")
-                        .HasColumnName("Registration_No");
-
                     b.Property<int>("SpeciesID")
                         .HasColumnType("int")
                         .HasColumnName("Species_ID");
+
+                    b.Property<string>("TPRegistration")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("nvarchar(100)")
+                        .HasColumnName("TP_Registration");
 
                     b.Property<decimal>("Volume")
                         .HasColumnType("decimal(18,3)")
                         .HasColumnName("Volume");
 
                     b.HasKey("Id");
-
-                    b.HasIndex("ForestProduceId");
 
                     b.HasIndex("SpeciesID");
 
@@ -1655,17 +1510,9 @@ namespace OfficerService.Migrations
 
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<long>("Id"));
 
-                    b.Property<long?>("ApplicationId")
-                        .HasColumnType("bigint")
-                        .HasColumnName("Application_Id");
-
                     b.Property<DateTime>("CreatedDate")
                         .HasColumnType("datetime2")
                         .HasColumnName("Created_Date");
-
-                    b.Property<int>("ForestProduceId")
-                        .HasColumnType("int")
-                        .HasColumnName("ForestProduceId");
 
                     b.Property<decimal>("Girth")
                         .HasColumnType("decimal(18,2)")
@@ -1679,15 +1526,15 @@ namespace OfficerService.Migrations
                         .HasColumnType("int")
                         .HasColumnName("LogsNo");
 
-                    b.Property<string>("RegistrationNo")
-                        .IsRequired()
-                        .HasMaxLength(100)
-                        .HasColumnType("nvarchar(100)")
-                        .HasColumnName("Registration_No");
-
                     b.Property<int>("SpeciesID")
                         .HasColumnType("int")
                         .HasColumnName("Species_ID");
+
+                    b.Property<string>("TPRegistration")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("nvarchar(100)")
+                        .HasColumnName("TP_Registration");
 
                     b.Property<decimal>("Thickness")
                         .HasColumnType("decimal(18,2)")
@@ -1708,8 +1555,6 @@ namespace OfficerService.Migrations
                         .HasColumnName("Width");
 
                     b.HasKey("Id");
-
-                    b.HasIndex("ForestProduceId");
 
                     b.HasIndex("SpeciesID");
 
@@ -1841,12 +1686,6 @@ namespace OfficerService.Migrations
                         .HasColumnType("nvarchar(500)")
                         .HasColumnName("Address");
 
-                    b.Property<string>("ApplicationId")
-                        .IsRequired()
-                        .HasMaxLength(100)
-                        .HasColumnType("nvarchar(100)")
-                        .HasColumnName("Application_Id");
-
                     b.Property<int>("CircleId")
                         .HasColumnType("int")
                         .HasColumnName("Circle_Id");
@@ -1871,6 +1710,12 @@ namespace OfficerService.Migrations
                     b.Property<int>("StateId")
                         .HasColumnType("int")
                         .HasColumnName("State_Id");
+
+                    b.Property<string>("TPRegistrationNo")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("nvarchar(100)")
+                        .HasColumnName("TP_registrationno");
 
                     b.Property<DateTime?>("UpdatedDate")
                         .HasColumnType("datetime2")
@@ -1895,12 +1740,6 @@ namespace OfficerService.Migrations
                         .HasColumnType("nvarchar(500)")
                         .HasColumnName("Address");
 
-                    b.Property<string>("ApplicationId")
-                        .IsRequired()
-                        .HasMaxLength(100)
-                        .HasColumnType("nvarchar(100)")
-                        .HasColumnName("Application_Id");
-
                     b.Property<int>("CircleId")
                         .HasColumnType("int")
                         .HasColumnName("Circle_Id");
@@ -1926,13 +1765,19 @@ namespace OfficerService.Migrations
                         .HasColumnType("int")
                         .HasColumnName("State_Id");
 
+                    b.Property<string>("TPRegistrationNo")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("nvarchar(100)")
+                        .HasColumnName("TP_registrationno");
+
                     b.Property<DateTime?>("UpdatedDate")
                         .HasColumnType("datetime2")
                         .HasColumnName("Updated_Date");
 
                     b.HasKey("SourceId");
 
-                    b.ToTable("source_place");
+                    b.ToTable("Tp_source_place");
                 });
 
             modelBuilder.Entity("OfficerService.Models.WorkFlowSteps", b =>
@@ -2198,95 +2043,55 @@ namespace OfficerService.Migrations
 
             modelBuilder.Entity("OfficerService.Models.SpeciesLogsBamboo", b =>
                 {
-                    b.HasOne("OfficerService.Models.ForestProduce", "ForestProduce")
-                        .WithMany()
-                        .HasForeignKey("ForestProduceId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
                     b.HasOne("OfficerService.Models.MasterSpecies", "Species")
                         .WithMany()
                         .HasForeignKey("SpeciesID")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
-
-                    b.Navigation("ForestProduce");
 
                     b.Navigation("Species");
                 });
 
             modelBuilder.Entity("OfficerService.Models.SpeciesLogsFuelwood", b =>
                 {
-                    b.HasOne("OfficerService.Models.ForestProduce", "ForestProduce")
-                        .WithMany()
-                        .HasForeignKey("ForestProduceId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
                     b.HasOne("OfficerService.Models.MasterSpecies", "Species")
                         .WithMany()
                         .HasForeignKey("SpeciesID")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
-
-                    b.Navigation("ForestProduce");
 
                     b.Navigation("Species");
                 });
 
             modelBuilder.Entity("OfficerService.Models.SpeciesLogsMinorForestProduce", b =>
                 {
-                    b.HasOne("OfficerService.Models.ForestProduce", "ForestProduce")
-                        .WithMany()
-                        .HasForeignKey("ForestProduceId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
                     b.HasOne("OfficerService.Models.MasterSpecies", "Species")
                         .WithMany()
                         .HasForeignKey("SpeciesID")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
-
-                    b.Navigation("ForestProduce");
 
                     b.Navigation("Species");
                 });
 
             modelBuilder.Entity("OfficerService.Models.SpeciesLogsRoundTimber", b =>
                 {
-                    b.HasOne("OfficerService.Models.ForestProduce", "ForestProduce")
-                        .WithMany()
-                        .HasForeignKey("ForestProduceId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
                     b.HasOne("OfficerService.Models.MasterSpecies", "Species")
                         .WithMany()
                         .HasForeignKey("SpeciesID")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
-
-                    b.Navigation("ForestProduce");
 
                     b.Navigation("Species");
                 });
 
             modelBuilder.Entity("OfficerService.Models.SpeciesLogsSawnTimber", b =>
                 {
-                    b.HasOne("OfficerService.Models.ForestProduce", "ForestProduce")
-                        .WithMany()
-                        .HasForeignKey("ForestProduceId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
                     b.HasOne("OfficerService.Models.MasterSpecies", "Species")
                         .WithMany()
                         .HasForeignKey("SpeciesID")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
-
-                    b.Navigation("ForestProduce");
 
                     b.Navigation("Species");
                 });

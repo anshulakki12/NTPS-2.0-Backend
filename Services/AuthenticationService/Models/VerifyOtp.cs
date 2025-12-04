@@ -17,12 +17,10 @@ namespace AuthenticationService.Models
         public string MobileNo { get; set; } = string.Empty;
 
         [Column("Application_Id", TypeName = "nvarchar(50)")]
-        [Required(ErrorMessage = "Application ID is required.")]
         [StringLength(50, ErrorMessage = "Application ID cannot exceed 50 characters.")]
-        public string ApplicationId { get; set; } = string.Empty;
+        public string? ApplicationId { get; set; } = string.Empty;
 
         [Column("OTP_Cases_Id", TypeName = "int")]
-        [Required(ErrorMessage = "OTP case ID is required.")]
         public int? OtpCasesId { get; set; }
 
         [Column("Status", TypeName = "char(1)")]
