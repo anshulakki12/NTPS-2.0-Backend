@@ -342,9 +342,6 @@ namespace AuthenticationService.Controllers
                 Dob = "1998-03-04",
                 Gender = "Male",
                 Address = "New Delhi, India",
-
-
-
                 Pincode = "110001"
             };
 
@@ -568,36 +565,6 @@ namespace AuthenticationService.Controllers
                     });
                 }
             }
-
-            // Check in Officers_Login table (if you have this table)
-            // var officer = await _repository.GetOfficerByLoginIdAsync(request.LoginId);
-            // if (officer != null)
-            // {
-            //     if (officer.IsActive == "Y")
-            //     {
-            //         return Ok(new CheckLoginIdResponse
-            //         {
-            //             Exists = true,
-            //             IsActive = true,
-            //             MobileNo = officer.MobileNo,
-            //             Role = officer.RoleId.ToString(),
-            //             LoginId = officer.LoginId,
-            //             Message = "Officer found and active"
-            //         });
-            //     }
-            //     else
-            //     {
-            //         return Ok(new CheckLoginIdResponse
-            //         {
-            //             Exists = true,
-            //             IsActive = false,
-            //             MobileNo = officer.MobileNo,
-            //             Role = officer.RoleId.ToString(),
-            //             LoginId = officer.LoginId,
-            //             Message = "Officer account not active"
-            //         });
-            //     }
-            // }
 
             return Ok(new CheckLoginIdResponse
             {
