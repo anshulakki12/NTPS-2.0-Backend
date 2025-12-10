@@ -16,11 +16,17 @@ builder.Services.AddSwaggerGen();
 builder.Services.AddDbContext<MasterLoginDbContext>(options =>
     options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));
 
-// DI
+builder.Configuration
+    .SetBasePath(Directory.GetCurrentDirectory())
+    .AddJsonFile("appsettings.json", optional: false, reloadOnChange: true)
+    .AddEnvironmentVariables();
+
+// Register services AFTER config is loaded
 builder.Services.AddScoped<IMasterUserRepository, MasterUserRepository>();
 builder.Services.AddScoped<IMasterLoginService, MasterLoginServices>();
-builder.Services.AddSingleton<RabbitMqProducer>();
-builder.Services.AddHostedService<RabbitMqConsumer>();
+builder.Services.AddSingleton<IRabbitMqService, RabbitMqService>();
+builder.Services.AddHostedService<ApplicantRegisteredConsumer>();
+
 
 // JWT
 builder.Services.AddAuthentication("Bearer")

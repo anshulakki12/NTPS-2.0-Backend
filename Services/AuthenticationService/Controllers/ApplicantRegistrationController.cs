@@ -135,7 +135,7 @@ namespace AuthenticationService.Controllers
                 new { message = "Registration successful", id = created.RegistrationId });
         }
 
-        
+
         //[Authorize(Roles = "Applicant")]
         [HttpPost("generate-otp")]
         public async Task<IActionResult> GenerateOtp([FromBody] string mobileNumber)

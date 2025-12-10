@@ -13,32 +13,36 @@ namespace MasterLoginService.Messaging
             _config = config;
         }
 
-        public async Task PublishLoginEventAsync(object message)
+        public Task PublishLoginEventAsync(object message)
         {
             var factory = new ConnectionFactory
             {
                 Uri = new Uri(_config["RabbitMQ:ConnectionString"])
             };
 
-            await using var connection = await factory.CreateConnectionAsync();
-            await using var channel = await connection.CreateChannelAsync();
+            // Create synchronous connection
+            using var connection = factory.CreateConnection();
+            using var channel = connection.CreateModel();
 
-            await channel.QueueDeclareAsync(
+            channel.QueueDeclare(
                 queue: "masterlogin.events",
                 durable: true,
                 exclusive: false,
-                autoDelete: false
+                autoDelete: false,
+                arguments: null
             );
 
             var json = JsonSerializer.Serialize(message);
             var body = Encoding.UTF8.GetBytes(json);
 
-            await channel.BasicPublishAsync(
+            channel.BasicPublish(
                 exchange: "",
                 routingKey: "masterlogin.events",
-                mandatory: false,
+                basicProperties: null,
                 body: body
             );
+
+            return Task.CompletedTask;
         }
     }
 }

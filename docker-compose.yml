@@ -1,0 +1,127 @@
+# docker-compose.yml at ROOT level
+version: '3.8'
+
+services:
+  # RabbitMQ for event-driven communication
+  rabbitmq:
+    image: rabbitmq:3.12-management
+    container_name: rabbitmq
+    ports:
+      - "5672:5672"
+      - "15672:15672"
+    environment:
+      RABBITMQ_DEFAULT_USER: guest
+      RABBITMQ_DEFAULT_PASS: guest
+    volumes:
+      - rabbitmq_data:/var/lib/rabbitmq
+    healthcheck:
+      test: ["CMD", "rabbitmq-diagnostics", "ping"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+    networks:
+      - microservices-net
+
+  # SQL Server for all databases
+  sql-server:
+    image: mcr.microsoft.com/mssql/server:2019-latest
+    container_name: sql-server
+    ports:
+      - "1433:1433"
+    environment:
+      ACCEPT_EULA: "Y"
+      SA_PASSWORD: "YourStrong@Passw0rd123"
+      MSSQL_PID: "Express"
+    volumes:
+      - sql_data:/var/opt/mssql
+    healthcheck:
+      test: ["CMD", "/opt/mssql-tools/bin/sqlcmd", "-S", "localhost", "-U", "sa", "-P", "YourStrong@Passw0rd123", "-Q", "SELECT 1"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+    networks:
+      - microservices-net
+
+  # Master Login Service (CENTRAL USER DIRECTORY)
+  master-login-service:
+    build: ./microservices/MasterLoginService
+    container_name: master-login-service
+    ports:
+      - "5005:80"
+    environment:
+      ASPNETCORE_ENVIRONMENT: Development
+      ConnectionStrings__MasterLoginDb: "Server=DESKTOP-8SDLKDI;Database=MasterLoginDb;User Id=sa;Password=sa@123;Trusted_Connection=True;MultipleActiveResultSets=true;Encrypt=False;"
+      RabbitMQ__HostName: "rabbitmq"
+      RabbitMQ__UserName: "guest"
+      RabbitMQ__Password: "guest"
+      RabbitMQ__QueueName: "user.registration.queue"
+      RabbitMQ__ExchangeName: "user.events"
+      RabbitMQ__RoutingKey: "user.registered"
+    depends_on:
+      rabbitmq:
+        condition: service_healthy
+      sql-server:
+        condition: service_healthy
+    networks:
+      - microservices-net
+
+  # Applicant Authentication Service
+  applicant-auth-service:
+    build: ./microservices/ApplicantAuthenticationService
+    container_name: applicant-auth-service
+    ports:
+      - "5001:80"
+    environment:
+      ASPNETCORE_ENVIRONMENT: Development
+      ConnectionStrings__ApplicantAuthDb: "Server=DESKTOP-8SDLKDI;Database=ApplicantLogin;User Id=sa;Password=sa@123;Trusted_Connection=True;MultipleActiveResultSets=true;Encrypt=False;"
+      Jwt__Key: "YourSuperSecretKeyForJWTTokenEncryption2024"
+      Jwt__Issuer: "ApplicantAuthenticationService"
+      Jwt__Audience: "ApplicantClient"
+      Jwt__ExpiryMinutes: "60"
+      RabbitMQ__HostName: "rabbitmq"
+      RabbitMQ__UserName: "guest"
+      RabbitMQ__Password: "guest"
+      RabbitMQ__QueueName: "user.registration.queue"
+      RabbitMQ__ExchangeName: "user.events"
+      RabbitMQ__RoutingKey: "user.registered"
+    depends_on:
+      rabbitmq:
+        condition: service_healthy
+      sql-server:
+        condition: service_healthy
+    networks:
+      - microservices-net
+
+  # Other services (similarly configured)
+  applicant-service:
+    build: ./microservices/ApplicantService
+    container_name: applicant-service
+    ports:
+      - "5002:80"
+    environment:
+      ASPNETCORE_ENVIRONMENT: Development
+      ConnectionStrings__ApplicantDb: "Server=sql-server;Database=ApplicantDb;User Id=sa;Password=YourStrong@Passw0rd123;TrustServerCertificate=true;"
+    depends_on:
+      - sql-server
+    networks:
+      - microservices-net
+
+  # Angular Frontend (if needed)
+  angular-frontend:
+    build: ./frontend
+    container_name: angular-frontend
+    ports:
+      - "4200:80"
+    depends_on:
+      - master-login-service
+      - applicant-auth-service
+    networks:
+      - microservices-net
+
+volumes:
+  rabbitmq_data:
+  sql_data:
+
+networks:
+  microservices-net:
+    driver: bridge
