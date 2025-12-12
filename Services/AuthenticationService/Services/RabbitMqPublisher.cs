@@ -1,6 +1,4 @@
-﻿using ApplicantAuthenticationService.Config;
-using Microsoft.Extensions.Options;
-using RabbitMQ.Client;
+﻿using RabbitMQ.Client;
 using RabbitMQ.Client.Events;
 using System.Text;
 using System.Text.Json;

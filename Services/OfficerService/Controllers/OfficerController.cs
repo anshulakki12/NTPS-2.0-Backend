@@ -131,6 +131,17 @@ namespace OfficerService.Controllers
             return Encoding.UTF8.GetString(decryptedBytes);
         }
 
+        //[HttpGet("logged-in-person-details/{loginId}")]
+        //public async Task<IActionResult> LoggedInPersonDetails(string loginId)
+        //{
+        //    if (string.IsNullOrWhiteSpace(loginId))
+        //        return BadRequest(new { message = "LoginId is required." });
+
+        //    var details = await _loginRepository.GetByLoginIdAsync(loginId);
+
+        //    return Ok(new { details });
+        //}
+
         [HttpGet("logged-in-person-details/{loginId}")]
         public async Task<IActionResult> LoggedInPersonDetails(string loginId)
         {
@@ -139,7 +150,11 @@ namespace OfficerService.Controllers
 
             var details = await _loginRepository.GetByLoginIdAsync(loginId);
 
+            if (details == null)
+                return NotFound(new { message = "No user found." });
+
             return Ok(new { details });
         }
+
     }
 }
