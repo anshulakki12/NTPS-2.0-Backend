@@ -41,14 +41,14 @@ namespace AuthenticationService.Controllers
             _env = env;
             _tokenService = tokenService;
         }
-        [Authorize(Roles = "Applicant")]
+        //[Authorize(Roles = "Applicant")]
         [HttpGet]
         public async Task<IActionResult> Get()
         {
             var registrations = await _repository.GetAllAsync();
             return Ok(registrations);
         }
-        [Authorize(Roles = "Applicant")]
+        //[Authorize(Roles = "Applicant")]
         [HttpGet("{id:int}")]
         public async Task<IActionResult> GetById(int id)
         {
@@ -253,7 +253,14 @@ namespace AuthenticationService.Controllers
                 return Unauthorized(new { message = "Invalid credentials." });
 
             // ✅ Default role = Applicant if not provided
-            var role = (registration.UserRole.HasValue && registration.UserRole.Value != 0) ? registration.UserRole.Value : 1;
+            //var role = (registration.UserRole.HasValue && registration.UserRole.Value != 0) ? registration.UserRole.Value : 1;
+
+            // ✅ Get role information
+            var role = await _repository.GetRoleByIdAsyncs(registration.UserRole.Value);
+            if (role == null || !role.IsActive)
+            {
+                return Unauthorized(new { message = "Role not found or inactive." });
+            }
 
             // ✅ Generate JWT token
             var tokenResult = _tokenService.GenerateToken(registration, role);
@@ -279,7 +286,8 @@ namespace AuthenticationService.Controllers
                     registration.RegistrationId,
                     registration.LoginId,
                     registration.Name,
-                    registration.EmailId
+                    registration.EmailId,
+                    registration.UserRole,
                 }
             });
         }
@@ -414,7 +422,7 @@ namespace AuthenticationService.Controllers
 
             return Ok(new { message = "Saved successfully", id = saved.DetailsId });
         }
-        [Authorize(Roles = "Applicant")]
+        //[Authorize(Roles = "Applicant")]
         [HttpGet("has-personal-details/{loginId}")]
         public async Task<IActionResult> HasPersonalDetails(string loginId)
         {
@@ -427,7 +435,7 @@ namespace AuthenticationService.Controllers
             return Ok(new { hasDetails });
         }
 
-        [Authorize(Roles = "Applicant")]
+        //[Authorize(Roles = "Applicant")]
         [HttpGet("logged-in-person-details/{loginId}")]
         public async Task<IActionResult> LoggedInPersonDetails(string loginId)
         {

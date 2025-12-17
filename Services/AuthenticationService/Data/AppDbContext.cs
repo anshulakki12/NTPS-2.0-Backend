@@ -16,6 +16,7 @@ namespace AuthenticationService.Data
         public DbSet<VerifyOtp> VerifyOtps { get; set; }
         public DbSet<ApplicantPersonalDetails> ApplicantPersonalDetails { get; set; }
         public DbSet<PasswordHistory> PasswordHistory { get; set; }
+        public DbSet<MasterRoles> MasterRoles { get; set; }
         public DbSet<ApplicantResourceCollection> ResourceCollection => Set<ApplicantResourceCollection>();
     }
 }

@@ -1,4 +1,5 @@
-﻿using AuthenticationService.Models;
+﻿using ApplicantAuthenticationService.Models;
+using AuthenticationService.Models;
 
 namespace AuthenticationService.Repositories
 {
@@ -17,7 +18,7 @@ namespace AuthenticationService.Repositories
         Task<ApplicantPersonalDetails> UpdateApplicantAsync(ApplicantPersonalDetails applicantpersonaldetails);
         Task<int> GetRecentPasswordHistoryAsync(string loginId, TimeSpan withinTime);
         Task AddPasswordHistoryAsync(string loginId, string passwordHash);
-
+        Task<MasterRoles?> GetRoleByIdAsyncs(int roleId);
 
     }
 }

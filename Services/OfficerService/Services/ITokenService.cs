@@ -5,6 +5,6 @@ namespace OfficerService.Services
 {
     public interface ITokenService
     {
-        TokenResult GenerateToken(OfficerRegistration officer, int roleId);
+        TokenResult GenerateToken(OfficerRegistration officer, MasterRoles role);
     }
 }

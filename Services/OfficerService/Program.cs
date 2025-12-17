@@ -83,31 +83,79 @@ builder.Services.Configure<JsonOptions>(options =>
 });
 
 
-// Add JWT Authentication
-builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
-    .AddJwtBearer(options =>
+// Configure JWT authentication
+builder.Services.AddAuthentication(options =>
+{
+    options.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
+    options.DefaultChallengeScheme = JwtBearerDefaults.AuthenticationScheme;
+})
+.AddJwtBearer(options =>
+{
+    options.RequireHttpsMetadata = false;
+    options.SaveToken = true;
+    options.TokenValidationParameters = new TokenValidationParameters
     {
-        options.RequireHttpsMetadata = false; // Set to true in production if using HTTPS
-        options.SaveToken = true;
-        options.TokenValidationParameters = new TokenValidationParameters
+        ValidateIssuer = true,
+        ValidateAudience = true,
+        ValidateLifetime = true,
+        ValidateIssuerSigningKey = true,
+        ValidIssuer = builder.Configuration["Jwt:Issuer"],
+        ValidAudience = builder.Configuration["Jwt:Audience"],
+        IssuerSigningKey = new SymmetricSecurityKey(
+            Encoding.UTF8.GetBytes(builder.Configuration["Jwt:Key"] ?? throw new InvalidOperationException("JWT Key not configured"))),
+        ClockSkew = TimeSpan.Zero
+    };
+
+    // Handle token in Authorization header
+    options.Events = new JwtBearerEvents
+    {
+        OnMessageReceived = context =>
         {
-            ValidateIssuer = true,
-            ValidIssuer = jwtIssuer,
+            // Try to get token from Authorization header
+            var token = context.Request.Headers["Authorization"].FirstOrDefault()?.Split(" ").Last();
 
-            ValidateAudience = true,
-            ValidAudience = jwtAudience,
+            if (!string.IsNullOrEmpty(token))
+            {
+                context.Token = token;
+            }
 
-            ValidateIssuerSigningKey = true,
-            IssuerSigningKey = new SymmetricSecurityKey(
-                Encoding.UTF8.GetBytes(jwtKey)),
-
-            ValidateLifetime = true,
-            ClockSkew = TimeSpan.FromSeconds(30)
-        };
-    });
-
+            return Task.CompletedTask;
+        },
+        OnAuthenticationFailed = context =>
+        {
+            if (context.Exception.GetType() == typeof(SecurityTokenExpiredException))
+            {
+                context.Response.Headers.Append("Token-Expired", "true");
+            }
+            return Task.CompletedTask;
+        }
+    };
+});
 // Add Authorization
-builder.Services.AddAuthorization();
+// Add authorization with policies
+builder.Services.AddAuthorization(options =>
+{
+    // Admin policy
+    options.AddPolicy("AdminPolicy", policy =>
+        policy.RequireClaim("RoleId", "1"));
+
+    // State Officer policy
+    options.AddPolicy("StateOfficerPolicy", policy =>
+        policy.RequireClaim("RoleId", "19"));
+
+    // Officer policy (all officer roles except admin)
+    options.AddPolicy("OfficerPolicy", policy =>
+        policy.RequireClaim("RoleId", "19", "20", "21", "22", "23", "24", "25"));
+
+    // Applicant policy
+    options.AddPolicy("ApplicantPolicy", policy =>
+        policy.RequireClaim("RoleId", "28"));
+
+    // Officer or Admin policy
+    options.AddPolicy("OfficerOrAdminPolicy", policy =>
+        policy.RequireClaim("RoleId", "1", "19", "20", "21", "22", "23", "24", "25"));
+});
+
 
 // Add CORS policy
 builder.Services.AddCors(options =>

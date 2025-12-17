@@ -1,5 +1,7 @@
-using OfficerService.Models;
+using Microsoft.EntityFrameworkCore;
+using OfficerService.Data;
 using OfficerService.DtoModels;
+using OfficerService.Models;
 using OfficerService.Repositories;
 
 namespace OfficerService.Services
@@ -8,11 +10,13 @@ namespace OfficerService.Services
     {
         private readonly IMasterRoleRepository _roleRepository;
         private readonly IMasterRolesLogsService _logsService;
+        private readonly AppDbContext _context;
 
-        public MasterRoleService(IMasterRoleRepository roleRepository, IMasterRolesLogsService logsService)
+        public MasterRoleService(IMasterRoleRepository roleRepository, IMasterRolesLogsService logsService, AppDbContext context)
         {
             _roleRepository = roleRepository;
             _logsService = logsService;
+            _context = context;
         }
 
         public async Task<RoleResponseDto> CreateRoleAsync(CreateRoleDto createRoleDto)
@@ -206,6 +210,84 @@ namespace OfficerService.Services
                 DeactivatedOn = role.DeactivatedOn,
                 ReactivatedOn = role.ReactivatedOn
             };
+        }
+
+        public async Task<MasterRoles?> GetRoleByIdAsyncs(int roleId)
+        {
+            return await _context.MasterRoles
+                .FirstOrDefaultAsync(r => r.RoleId == roleId);
+        }
+
+        public async Task<List<MasterRoles>> GetAllActiveRolesAsync()
+        {
+            return await _context.MasterRoles
+                .Where(r => r.IsActive)
+                .OrderBy(r => r.RoleId)
+                .ToListAsync();
+        }
+
+        public async Task<bool> IsRoleActiveAsync(int roleId)
+        {
+            return await _context.MasterRoles
+                .AnyAsync(r => r.RoleId == roleId && r.IsActive);
+        }
+
+        public async Task<List<int>> GetValidRoleIdsAsync()
+        {
+            return await _context.MasterRoles
+                .Where(r => r.IsActive)
+                .Select(r => r.RoleId)
+                .ToListAsync();
+        }
+
+        // Get role hierarchy (for officer chain of command)
+        public async Task<Dictionary<int, List<int>>> GetRoleHierarchyAsync()
+        {
+            // Define role hierarchy based on your system
+            var hierarchy = new Dictionary<int, List<int>>
+            {
+                // Admin can access all roles
+                { 1, new List<int> { 1, 19, 20, 21, 22, 23, 24, 25, 28 } },
+                // State Officer can access lower level officer roles
+                { 19, new List<int> { 19, 20, 21, 22, 23, 24, 25 } },
+                // Circle Officer can access division and below
+                { 20, new List<int> { 20, 21, 22, 23, 24, 25 } },
+                // Division Officer can access subdivision and below
+                { 21, new List<int> { 21, 22, 23, 24, 25 } },
+                // Subdivision Officer can access range and below
+                { 22, new List<int> { 22, 23, 24, 25 } },
+                // Range Officer can access MSI and Depot
+                { 23, new List<int> { 23, 24, 25 } },
+                // MSI Officer - standalone
+                { 24, new List<int> { 24 } },
+                // Depot Officer - standalone
+                { 25, new List<int> { 25 } },
+                // Applicant - standalone
+                { 28, new List<int> { 28 } }
+            };
+
+            // Filter only active roles
+            var activeRoleIds = await GetValidRoleIdsAsync();
+
+            foreach (var key in hierarchy.Keys.ToList())
+            {
+                hierarchy[key] = hierarchy[key].Where(id => activeRoleIds.Contains(id)).ToList();
+            }
+
+            return hierarchy;
+        }
+
+        // Check if role has permission to access another role
+        public async Task<bool> CanAccessRoleAsync(int userRoleId, int targetRoleId)
+        {
+            var hierarchy = await GetRoleHierarchyAsync();
+
+            if (hierarchy.ContainsKey(userRoleId))
+            {
+                return hierarchy[userRoleId].Contains(targetRoleId);
+            }
+
+            return false;
         }
     }
 }

@@ -13,5 +13,9 @@ namespace OfficerService.Services
         Task<bool> DeleteRoleAsync(int roleId, string performedBy = "System", string? ipAddress = null);
         Task<RoleResponseDto> DeactivateRoleAsync(int roleId, string deactivatedBy, string? ipAddress = null);
         Task<RoleResponseDto> ReactivateRoleAsync(int roleId, string reactivatedBy, string? ipAddress = null);
+        Task<MasterRoles?> GetRoleByIdAsyncs(int roleId);
+        Task<List<MasterRoles>> GetAllActiveRolesAsync();
+        Task<bool> IsRoleActiveAsync(int roleId);
+        Task<List<int>> GetValidRoleIdsAsync();
     }
 }

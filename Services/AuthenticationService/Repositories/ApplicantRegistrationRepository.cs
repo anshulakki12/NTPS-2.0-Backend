@@ -103,5 +103,11 @@ namespace AuthenticationService.Repositories
             await _context.SaveChangesAsync();
         }
 
+        public async Task<MasterRoles?> GetRoleByIdAsyncs(int roleId)
+        {
+            return await _context.MasterRoles
+                .FirstOrDefaultAsync(r => r.RoleId == roleId);
+        }
+
     }
 }
