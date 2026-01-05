@@ -43,7 +43,7 @@ namespace OfficerService.Services
             {
                 ApplicationId = application.ApplicationId,
                 StateId = application.StateId ?? 0,
-                StateName = application.State?.StName,
+                StateName = application.State?.StateName,
                 DistrictId = application.DistrictId ?? 0,
                 DistrictName = application.District?.DistName,
                 SubDistrictId = application.SubDistrictId,
@@ -58,6 +58,12 @@ namespace OfficerService.Services
         public async Task<List<OpenApplicationDto>> GetOpenUserApplicationsAsync(string userId)
         {
             return await _applicationRepository.GetOpenApplicationsByUserAsync(userId);
+        }
+
+        // OfficerService/Services/ApplicationService.cs
+        public async Task<List<RegisteredTpResponseDto>> GetRegisteredApplicationsAsync(string userId)
+        {
+            return await _applicationRepository.GetRegisteredApplicationsByUserAsync(userId);
         }
 
         public async Task<ApplicationMaster?> GetApplicationByIdAsync(long applicationId)
@@ -83,7 +89,7 @@ namespace OfficerService.Services
                     throw new Exception("Application or State not found");
 
                 // Safely get state code
-                var stateCode = application.State.StCode.ToString();
+                var stateCode = application.State.StateCode.ToString();
                 var currentYear = DateTime.UtcNow.Year;
 
                 // Get last registration for this state + year + application category
@@ -175,7 +181,7 @@ namespace OfficerService.Services
                     registrationNo = await GenerateUniqueRegistrationNoForCategoryAsync(
                         request.ApplicationId,
                         applicationCategoryId,
-                        application.State.StCode);
+                        application.State.StateCode);
 
                     // 🔥 **CRITICAL FIX**: Check if the generated number already exists
                     var existsInDb = await _context.ApplicationDetails
@@ -185,7 +191,7 @@ namespace OfficerService.Services
                     {
                         // If it exists, generate a new one
                         registrationNo = await GenerateNextAvailableRegistrationNoAsync(
-                            application.State.StCode,
+                            application.State.StateCode,
                             registrationNo);
                     }
 
@@ -258,7 +264,7 @@ namespace OfficerService.Services
         private async Task<string> GenerateUniqueRegistrationNoForCategoryAsync(
     long applicationId,
     int applicationCategoryId,
-    int stateCode)
+    string stateCode)
         {
             try
             {
@@ -288,7 +294,7 @@ namespace OfficerService.Services
         }
 
         // New method to get next available registration number
-        private async Task<string> GetNextRegistrationNumberAsync(int stateCode)
+        private async Task<string> GetNextRegistrationNumberAsync(string stateCode)
         {
             var currentYear = DateTime.UtcNow.Year;
             var basePrefix = $"{stateCode}{currentYear}";
@@ -329,7 +335,7 @@ namespace OfficerService.Services
         }
 
         // New method to find next available number if generated one already exists
-        private async Task<string> GenerateNextAvailableRegistrationNoAsync(int stateCode, string existingNumber)
+        private async Task<string> GenerateNextAvailableRegistrationNoAsync(string stateCode, string existingNumber)
         {
             var currentYear = DateTime.UtcNow.Year;
             var basePrefix = $"{stateCode}{currentYear}";

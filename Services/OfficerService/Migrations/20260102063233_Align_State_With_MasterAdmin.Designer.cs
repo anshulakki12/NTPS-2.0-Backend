@@ -3,6 +3,7 @@ using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using OfficerService.Data;
 
@@ -11,9 +12,11 @@ using OfficerService.Data;
 namespace OfficerService.Migrations
 {
     [DbContext(typeof(AppDbContext))]
-    partial class AppDbContextModelSnapshot : ModelSnapshot
+    [Migration("20260102063233_Align_State_With_MasterAdmin")]
+    partial class Align_State_With_MasterAdmin
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -1804,7 +1807,7 @@ namespace OfficerService.Migrations
                         .HasColumnType("nvarchar(255)")
                         .HasColumnName("Required_Field");
 
-                    b.Property<int>("STCode")
+                    b.Property<int?>("STCode")
                         .HasColumnType("int")
                         .HasColumnName("ST_CODE");
 
@@ -2096,7 +2099,6 @@ namespace OfficerService.Migrations
                     b.HasOne("OfficerService.Models.State", "State")
                         .WithMany("Applications")
                         .HasForeignKey("StateId")
-                        .HasPrincipalKey("STCode")
                         .OnDelete(DeleteBehavior.Restrict);
 
                     b.HasOne("OfficerService.Models.SubDistrict", "SubDistrict")

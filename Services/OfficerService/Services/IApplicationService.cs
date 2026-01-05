@@ -9,6 +9,8 @@ namespace OfficerService.Services
         Task<ApplicationResponseDto?> GetApplicationAsync(long applicationId);
         Task<List<ApplicationResponseDto>> GetUserApplicationsAsync(string userId);
         Task<List<OpenApplicationDto>> GetOpenUserApplicationsAsync(string userId);
+        // OfficerService/Services/IApplicationService.cs
+        Task<List<RegisteredTpResponseDto>> GetRegisteredApplicationsAsync(string userId);
         Task<ApplicationMaster?> GetApplicationByIdAsync(long applicationId);
         Task<ApplicationDetailsDto?> GetApplicationByIdAsyncs(long applicationId);
         Task<ProduceDetailResponseDto> AddProduceDetailsAsyncs(AddProduceDetailRequestDto request);

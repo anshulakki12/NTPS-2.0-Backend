@@ -19,8 +19,8 @@ namespace OfficerService.Models
         [Required]
         public int ZoneID { get; set; }
 
-        [ForeignKey("StateID")]
-        public virtual State State { get; set; }
+        [ForeignKey(nameof(StateID))]
+        public State State { get; set; } = null!;
 
         [ForeignKey("DistrictID")]
         public virtual District District { get; set; }

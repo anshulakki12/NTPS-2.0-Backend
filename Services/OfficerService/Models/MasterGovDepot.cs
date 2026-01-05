@@ -44,6 +44,7 @@ namespace OfficerService.Models
         public DateTime? CreatedDate { get; set; }
 
         // 🔗 Optional Navigation Property if needed for relationships add circle district, state, etc.
-        public State? State { get; set; }
+        [ForeignKey(nameof(StateId))]
+        public State State { get; set; } = null!;
     }
 }

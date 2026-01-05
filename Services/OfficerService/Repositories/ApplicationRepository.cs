@@ -87,7 +87,7 @@ namespace OfficerService.Repositories
                 {
                     ApplicationId = a.ApplicationId,
                     StateId = a.StateId ?? 0,
-                    StateName = a.State!.StName,
+                    StateName = a.State!.StateName,
                     DistrictId = a.DistrictId ?? 0,
                     DistrictName = a.District!.DistName,
                     SubDistrictId = a.SubDistrictId,
@@ -112,7 +112,7 @@ namespace OfficerService.Repositories
                 .Select(a => new OpenApplicationDto
                 {
                     ApplicationId = a.ApplicationId,
-                    StateName = a.State!.StName,
+                    StateName = a.State!.StateName,
                     DistrictName = a.District!.DistName,
                     ForestProduceName = a.ForestProduce!.Name,
                     CreatedDate = a.CreatedDate ?? DateTime.UtcNow,
@@ -121,6 +121,62 @@ namespace OfficerService.Repositories
                 .ToListAsync();
         }
 
+        // OfficerService/Repositories/ApplicationRepository.cs
+        public async Task<List<RegisteredTpResponseDto>> GetRegisteredApplicationsByUserAsync(string userId)
+        {
+            try
+            {
+                var applications = await _context.ApplicationMasters
+                    .Where(a => a.CreateByUserId == userId &&
+                               (a.ApplicationStatus == "Open" || a.ApplicationStatus == "InProgress"))
+                    .Include(a => a.State)
+                    .Include(a => a.District)
+                    .Include(a => a.ForestProduce)
+                    .Include(a => a.ApplicationDetails)
+                        .ThenInclude(ad => ad.ApplicationCategory)
+                    .OrderByDescending(a => a.CreatedDate)
+                    .ToListAsync();
+
+                var result = new List<RegisteredTpResponseDto>();
+
+                foreach (var app in applications)
+                {
+                    var appDto = new RegisteredTpResponseDto
+                    {
+                        ApplicationId = app.ApplicationId,
+                        CreatedDate = app.CreatedDate ?? DateTime.UtcNow,
+                        ApplicationStatus = app.ApplicationStatus ?? "Open",
+                        StateName = app.State?.StateName,
+                        DistrictName = app.District?.DistName,
+                        ForestProduceName = app.ForestProduce?.Name
+                    };
+
+                    if (app.ApplicationDetails != null)
+                    {
+                        foreach (var detail in app.ApplicationDetails)
+                        {
+                            appDto.ApplicationDetails.Add(new ApplicationDetailInfoDto
+                            {
+                                ApplicationDetailId = detail.Id,
+                                RegistrationNo = detail.RegistrationNo ?? string.Empty,
+                                ApplicationCategoryId = detail.ApplicationCateogryId ?? 0,
+                                CategoryName = detail.ApplicationCategory?.CategoryName ?? "Unknown",
+                                CreatedDate = detail.CreatedDate
+                            });
+                        }
+                    }
+
+                    result.Add(appDto);
+                }
+
+                return result;
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error getting registered applications for user: {UserId}", userId);
+                throw;
+            }
+        }
         public async Task<ApplicationDetail> AddApplicationDetailAsync(ApplicationDetail applicationDetail)
         {
             _context.ApplicationDetails.Add(applicationDetail);
@@ -338,7 +394,7 @@ namespace OfficerService.Repositories
                     CreateByUserName = application.CreateByUserName,
                     CreatedDate = application.CreatedDate,
                     StateId = application.StateId,
-                    StateName = application.State?.StName,
+                    StateName = application.State?.StateName,
                     DistrictId = application.DistrictId,
                     DistrictName = application.District?.DistName,
                     SubDistrictId = application.SubDistrictId,
@@ -376,14 +432,15 @@ namespace OfficerService.Repositories
                 {
                     SpeciesLogId = sl.Id,
                     SpeciesId = sl.SpeciesID,
-                    ForestProduceId = sl.ForestProduceId, // Add this
+                    ForestProduceId = sl.ForestProduceId,
                     SpeciesName = sl.Species.Name,
                     NoOfLogs = sl.LogsNo,
                     MiddleGirthCm = sl.Girth,
                     LengthCm = sl.Length,
                     Quantity = sl.Quantity,
                     Volume = sl.Volume,
-                    ForestProduceType = "RoundTimber"
+                    ForestProduceType = "RoundTimber",
+                    RegistrationNo = sl.RegistrationNo
                 })
                 .ToListAsync();
             speciesLogs.AddRange(roundTimberLogs);
@@ -404,7 +461,8 @@ namespace OfficerService.Repositories
                     Quantity = sl.Quantity,
                     Volume = sl.Volume,
                     Unit = sl.Unit,
-                    ForestProduceType = "Bamboo"
+                    ForestProduceType = "Bamboo",
+                    RegistrationNo = sl.RegistrationNo
                 })
                 .ToListAsync();
             speciesLogs.AddRange(bambooLogs);
@@ -422,7 +480,8 @@ namespace OfficerService.Repositories
                     SpeciesName = sl.Species.Name,
                     Quantity = sl.Quantity,
                     Unit = sl.Unit,
-                    ForestProduceType = "Fuelwood"
+                    ForestProduceType = "Fuelwood",
+                    RegistrationNo = sl.RegistrationNo
                 })
                 .ToListAsync();
             speciesLogs.AddRange(fuelwoodLogs);
@@ -441,7 +500,8 @@ namespace OfficerService.Repositories
                     PlantPartID = sl.PlantPartID,
                     Quantity = sl.Quantity,
                     Unit = sl.Unit,
-                    ForestProduceType = "Minor"
+                    ForestProduceType = "Minor",
+                    RegistrationNo = sl.RegistrationNo
                 })
                 .ToListAsync();
             speciesLogs.AddRange(minorLogs);
@@ -463,7 +523,8 @@ namespace OfficerService.Repositories
                     Thickness = sl.Thickness,
                     Volume = sl.Volume,
                     Unit = sl.Unit,
-                    ForestProduceType = "SawnTimber"
+                    ForestProduceType = "SawnTimber",
+                    RegistrationNo = sl.RegistrationNo
                 })
                 .ToListAsync();
             speciesLogs.AddRange(sawnTimberLogs);

@@ -40,7 +40,8 @@ namespace OfficerService.Models
         public DateTime CreatedOn { get; set; }
 
         // 🔗 Optional navigation properties for relationships
-        public State? State { get; set; }
+        [ForeignKey(nameof(StateId))]
+        public State State { get; set; } = null!;
         public MasterWorkFlow? MasterWorkFlow { get; set; }
         public ForestProduce? ForestProduce { get; set; }
         public MasterSpecies? MasterSpecies { get; set; }

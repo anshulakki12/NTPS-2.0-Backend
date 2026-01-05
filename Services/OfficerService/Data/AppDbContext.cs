@@ -201,6 +201,45 @@ namespace OfficerService.Data
                 .HasForeignKey(sm => sm.StateId)
                 .OnDelete(DeleteBehavior.Restrict);
 
+            modelBuilder.Entity<State>()
+               .HasKey(s => s.StateId);
+
+            modelBuilder.Entity<ApplicationMaster>()
+                .HasOne(a => a.State)
+                .WithMany(s => s.Applications)
+                .HasForeignKey(a => a.StateId)
+                .OnDelete(DeleteBehavior.Restrict);
+
+            modelBuilder.Entity<ZoneData>()
+                .HasOne(z => z.State)
+                .WithMany(s => s.Zones)
+                .HasForeignKey(z => z.StateID);
+
+            modelBuilder.Entity<MasterWorkFlow>()
+                .HasOne(w => w.State)
+                .WithMany(s => s.WorkFlows)
+                .HasForeignKey(w => w.StateId);
+
+            modelBuilder.Entity<MasterZone>()
+                .HasOne(z => z.State)
+                .WithMany(s => s.MasterZones)
+                .HasForeignKey(z => z.StateID);
+
+            modelBuilder.Entity<SpeciesMapping>()
+                .HasOne(sm => sm.State)
+                .WithMany(s => s.SpeciesMappings)
+                .HasForeignKey(sm => sm.StateId);
+
+            modelBuilder.Entity<MasterGovDepot>()
+                .HasOne(g => g.State)
+                .WithMany(s => s.GovDepots)
+                .HasForeignKey(g => g.StateId);
+            modelBuilder.Entity<ApplicationMaster>()
+               .HasOne(a => a.State)
+               .WithMany(s => s.Applications)
+               .HasForeignKey(a => a.StateId)
+               .HasPrincipalKey(s => s.STCode); // 🔥 KEY LINE
+
             base.OnModelCreating(modelBuilder);
         }
 

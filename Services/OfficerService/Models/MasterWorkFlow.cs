@@ -29,7 +29,8 @@ namespace OfficerService.Models
         public DateTime CreatedOn { get; set; }
 
         // 🔗 Optional: Navigation property to State table
-        public State? State { get; set; }
+        [ForeignKey(nameof(StateId))]
+        public State State { get; set; } = null!;
         public ICollection<WorkFlowSteps>? WorkFlowSteps { get; set; }
     }
 }

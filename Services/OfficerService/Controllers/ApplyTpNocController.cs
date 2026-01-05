@@ -197,6 +197,22 @@ namespace OfficerService.Controllers
             }
         }
 
+        // OfficerService/Controllers/ApplyTpNocController.cs
+        [HttpGet("registered/{userId}")]
+        public async Task<IActionResult> GetRegisteredApplications(string userId)
+        {
+            try
+            {
+                var result = await _applicationService.GetRegisteredApplicationsAsync(userId);
+                return Ok(new { success = true, data = result });
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error getting registered applications for user: {UserId}", userId);
+                return BadRequest(new { success = false, message = ex.Message });
+            }
+        }
+
         [HttpGet("{applicationId}")]
         public async Task<IActionResult> GetApplicationById(long applicationId)
         {
@@ -466,8 +482,9 @@ namespace OfficerService.Controllers
                         a.UpdatedByUserName,
                         State = a.State != null ? new
                         {
-                            a.State.StCode,
-                            a.State.StName
+                            a.State.STCode,
+                            a.State.StateName,
+                            a.State.StateCode
                         } : null
                     })
                     .FirstOrDefaultAsync();

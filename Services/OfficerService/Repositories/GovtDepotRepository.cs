@@ -23,7 +23,7 @@ namespace OfficerService.Repositories
                 {
                     GovDepotId = d.GovDepotId,
                     StateId = d.StateId,
-                    StateName = d.State.StName,
+                    StateName = d.State.StateName,
                     CircleId = d.CircleId,
                     DivisionId = d.DivisionId,
                     RangeId = d.RangeId,
@@ -46,7 +46,7 @@ namespace OfficerService.Repositories
                 {
                     GovDepotId = d.GovDepotId,
                     StateId = d.StateId,
-                    StateName = d.State.StName,
+                    StateName = d.State.StateName,
                     CircleId = d.CircleId,
                     DivisionId = d.DivisionId,
                     RangeId = d.RangeId,
@@ -68,7 +68,7 @@ namespace OfficerService.Repositories
                 {
                     GovDepotId = d.GovDepotId,
                     StateId = d.StateId,
-                    StateName = d.State.StName,
+                    StateName = d.State.StateName,
                     CircleId = d.CircleId,
                     DivisionId = d.DivisionId,
                     RangeId = d.RangeId,
@@ -180,7 +180,7 @@ namespace OfficerService.Repositories
         public async Task<IEnumerable<State>> GetAllStatesAsync()
         {
             return await _context.States
-                .OrderBy(s => s.StName)
+                .OrderBy(s => s.StateName)
                 .ToListAsync();
         }
     }

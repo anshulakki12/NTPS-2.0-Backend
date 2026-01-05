@@ -18,8 +18,8 @@ namespace OfficerService.Models
         [Required]
         [Column("State_ID")]
         public int StateID { get; set; }
-        [ForeignKey("StateID")]
-        public virtual State State { get; set; }
+        [ForeignKey(nameof(StateID))]
+        public State State { get; set; } = null!;
         [Column("Is_Active")]
         public bool IsActive { get; set; } = true;
         [Column("Created_Date")]

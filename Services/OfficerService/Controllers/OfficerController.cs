@@ -17,13 +17,13 @@ namespace OfficerService.Controllers
         private readonly ILogin _loginRepository;
         private readonly ITokenService _tokenService;
         private readonly IMasterRoleService _roleService;
-
-
-        public OfficerController(ILogin loginRepository, ITokenService tokenService, IMasterRoleService roleService)
+        private readonly IWorkflowRepository _repo;
+        public OfficerController(ILogin loginRepository, ITokenService tokenService, IMasterRoleService roleService, IWorkflowRepository repo)
         {
             _loginRepository = loginRepository;
             _tokenService = tokenService;
             _roleService = roleService;
+            _repo = repo;
         }
 
         //[HttpPost("login")]
@@ -298,6 +298,13 @@ namespace OfficerService.Controllers
                 return NotFound(new { message = "No user found." });
 
             return Ok(new { details });
+        }
+
+        [HttpGet("master-levels")]
+        public async Task<IActionResult> GetMasterLevels()
+        {
+            var levels = await _repo.GetAllMasterLevelsAsync();
+            return Ok(levels);
         }
 
     }

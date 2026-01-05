@@ -44,7 +44,7 @@ namespace OfficerService.Repositories
         public async Task<IEnumerable<State>> GetAllStatesAsync()
         {
             return await _context.States
-                .OrderBy(s => s.StName)
+                .OrderBy(s => s.StateName)
                 .ToListAsync();
         }
 

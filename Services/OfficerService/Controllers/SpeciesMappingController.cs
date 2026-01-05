@@ -41,7 +41,7 @@ namespace OfficerService.Controllers
                     SpeciesId = sm.SpeciesId,
                     SpeciesName = sm.MasterSpecies?.Name,
                     StateId = sm.StateId,
-                    StateName = sm.State?.StName,
+                    StateName = sm.State?.StateName,
                     WorkFlowId = sm.WorkFlowId,
                     WorkFlowName = sm.MasterWorkFlow?.WorkFlowName,
                     ZoneId = sm.ZoneId,
@@ -146,7 +146,7 @@ namespace OfficerService.Controllers
                     zoneId = z.ZoneID,
                     zoneName = z.ZoneName,
                     stateId = z.StateID,
-                    stateName = z.State?.StName,
+                    stateName = z.State?.StateName,
                     isActive = z.IsActive
                 });
                 return Ok(result);
@@ -256,7 +256,7 @@ namespace OfficerService.Controllers
                     SpeciesId = result.SpeciesId,
                     SpeciesName = result.MasterSpecies?.Name,
                     StateId = result.StateId,
-                    StateName = result.State?.StName,
+                    StateName = result.State?.StateName,
                     WorkFlowId = result.WorkFlowId,
                     WorkFlowName = result.MasterWorkFlow?.WorkFlowName,
                     ZoneId = result.ZoneId,
@@ -332,7 +332,7 @@ namespace OfficerService.Controllers
                     SpeciesId = result.SpeciesId,
                     SpeciesName = result.MasterSpecies?.Name,
                     StateId = result.StateId,
-                    StateName = result.State?.StName,
+                    StateName = result.State?.StateName,
                     WorkFlowId = result.WorkFlowId,
                     WorkFlowName = result.MasterWorkFlow?.WorkFlowName,
                     ZoneId = result.ZoneId,

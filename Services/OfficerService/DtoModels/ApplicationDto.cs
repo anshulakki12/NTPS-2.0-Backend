@@ -216,6 +216,8 @@ namespace OfficerService.DtoModels
             public decimal? Thickness { get; set; }
             public int? PlantPartID { get; set; }
             public string ForestProduceType { get; set; } = string.Empty;
+            public string RegistrationNo { get; set; }
+            public long? ApplicationId { get; set; }
         }
 
         // Updated DTOs
@@ -351,6 +353,26 @@ namespace OfficerService.DtoModels
             public int? RangeId { get; set; }
             public string? Address { get; set; }
             public string? PinCode { get; set; }
+        }
+
+        public class RegisteredTpResponseDto
+        {
+            public long ApplicationId { get; set; }
+            public DateTime CreatedDate { get; set; }
+            public string ApplicationStatus { get; set; } = "Open";
+            public List<ApplicationDetailInfoDto> ApplicationDetails { get; set; } = new();
+            public string? StateName { get; set; }
+            public string? DistrictName { get; set; }
+            public string? ForestProduceName { get; set; }
+        }
+
+        public class ApplicationDetailInfoDto
+        {
+            public long ApplicationDetailId { get; set; }
+            public string RegistrationNo { get; set; } = string.Empty;
+            public int ApplicationCategoryId { get; set; }
+            public string CategoryName { get; set; } = string.Empty;
+            public DateTime? CreatedDate { get; set; }
         }
     }
 }

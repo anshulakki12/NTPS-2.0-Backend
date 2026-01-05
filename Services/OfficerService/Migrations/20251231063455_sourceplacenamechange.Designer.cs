@@ -3,6 +3,7 @@ using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using OfficerService.Data;
 
@@ -11,9 +12,11 @@ using OfficerService.Data;
 namespace OfficerService.Migrations
 {
     [DbContext(typeof(AppDbContext))]
-    partial class AppDbContextModelSnapshot : ModelSnapshot
+    [Migration("20251231063455_sourceplacenamechange")]
+    partial class sourceplacenamechange
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -1774,69 +1777,29 @@ namespace OfficerService.Migrations
 
             modelBuilder.Entity("OfficerService.Models.State", b =>
                 {
-                    b.Property<int>("StateId")
+                    b.Property<int>("Id")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("int")
-                        .HasColumnName("State_Id");
+                        .HasColumnName("ID");
 
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("StateId"));
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
 
-                    b.Property<int?>("LanguageId")
-                        .HasColumnType("int")
-                        .HasColumnName("Language_Id");
-
-                    b.Property<string>("LocalRule")
-                        .HasMaxLength(255)
-                        .HasColumnType("nvarchar(255)")
-                        .HasColumnName("Local_Rule");
-
-                    b.Property<string>("Lock")
-                        .HasMaxLength(5)
-                        .HasColumnType("nvarchar(5)")
-                        .HasColumnName("Lock");
-
-                    b.Property<int?>("RegionId")
-                        .HasColumnType("int")
-                        .HasColumnName("Region_Id");
-
-                    b.Property<string>("RequiredField")
-                        .HasMaxLength(255)
-                        .HasColumnType("nvarchar(255)")
-                        .HasColumnName("Required_Field");
-
-                    b.Property<int>("STCode")
+                    b.Property<int>("StCode")
                         .HasColumnType("int")
                         .HasColumnName("ST_CODE");
 
-                    b.Property<string>("Show")
-                        .HasColumnType("nvarchar(1)")
-                        .HasColumnName("Show");
+                    b.Property<string>("StName")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("nvarchar(100)")
+                        .HasColumnName("ST_Name");
 
-                    b.Property<string>("SpeciesDOC")
-                        .HasMaxLength(200)
-                        .HasColumnType("nvarchar(200)")
-                        .HasColumnName("Species_DOC");
+                    b.Property<string>("StUt")
+                        .HasMaxLength(50)
+                        .HasColumnType("nvarchar(50)")
+                        .HasColumnName("ST_UT");
 
-                    b.Property<string>("StatURL")
-                        .HasMaxLength(255)
-                        .HasColumnType("nvarchar(255)")
-                        .HasColumnName("StatURL");
-
-                    b.Property<string>("StateCode")
-                        .HasMaxLength(255)
-                        .HasColumnType("nvarchar(255)")
-                        .HasColumnName("State_Code");
-
-                    b.Property<string>("StateName")
-                        .HasMaxLength(255)
-                        .HasColumnType("nvarchar(255)")
-                        .HasColumnName("State_Name");
-
-                    b.Property<int?>("TPValidity")
-                        .HasColumnType("int")
-                        .HasColumnName("TP_Validity");
-
-                    b.HasKey("StateId");
+                    b.HasKey("Id");
 
                     b.ToTable("State", "dbo");
                 });
@@ -2094,10 +2057,8 @@ namespace OfficerService.Migrations
                         .HasForeignKey("ForestProduceId");
 
                     b.HasOne("OfficerService.Models.State", "State")
-                        .WithMany("Applications")
-                        .HasForeignKey("StateId")
-                        .HasPrincipalKey("STCode")
-                        .OnDelete(DeleteBehavior.Restrict);
+                        .WithMany()
+                        .HasForeignKey("StateId");
 
                     b.HasOne("OfficerService.Models.SubDistrict", "SubDistrict")
                         .WithMany()
@@ -2115,7 +2076,7 @@ namespace OfficerService.Migrations
             modelBuilder.Entity("OfficerService.Models.MasterGovDepot", b =>
                 {
                     b.HasOne("OfficerService.Models.State", "State")
-                        .WithMany("GovDepots")
+                        .WithMany()
                         .HasForeignKey("StateId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
@@ -2162,7 +2123,7 @@ namespace OfficerService.Migrations
             modelBuilder.Entity("OfficerService.Models.MasterZone", b =>
                 {
                     b.HasOne("OfficerService.Models.State", "State")
-                        .WithMany("MasterZones")
+                        .WithMany()
                         .HasForeignKey("StateID")
                         .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
@@ -2348,7 +2309,7 @@ namespace OfficerService.Migrations
                         .IsRequired();
 
                     b.HasOne("OfficerService.Models.State", "State")
-                        .WithMany("SpeciesMappings")
+                        .WithMany()
                         .HasForeignKey("StateId")
                         .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
@@ -2430,7 +2391,7 @@ namespace OfficerService.Migrations
                         .IsRequired();
 
                     b.HasOne("OfficerService.Models.State", "State")
-                        .WithMany("Zones")
+                        .WithMany()
                         .HasForeignKey("StateID")
                         .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
@@ -2504,17 +2465,7 @@ namespace OfficerService.Migrations
 
             modelBuilder.Entity("OfficerService.Models.State", b =>
                 {
-                    b.Navigation("Applications");
-
-                    b.Navigation("GovDepots");
-
-                    b.Navigation("MasterZones");
-
-                    b.Navigation("SpeciesMappings");
-
                     b.Navigation("WorkFlows");
-
-                    b.Navigation("Zones");
                 });
 #pragma warning restore 612, 618
         }

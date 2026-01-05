@@ -3,7 +3,7 @@ using System.ComponentModel.DataAnnotations.Schema;
 
 namespace OfficerService.Models
 {
-    [Table("source_place")]
+    [Table("Tp_source_place")]
     public class TpSourcePlace
     {
         [Key]

@@ -11,6 +11,8 @@ namespace OfficerService.Repositories
         Task<List<ApplicationResponseDto>> GetApplicationsByUserAsync(string userId);
         Task<long> GetNextApplicationIdAsync();
         Task<List<OpenApplicationDto>> GetOpenApplicationsByUserAsync(string userId);
+        // OfficerService/Repositories/IApplicationRepository.cs
+        Task<List<RegisteredTpResponseDto>> GetRegisteredApplicationsByUserAsync(string userId);
         Task<ApplicationDetailsDto?> GetApplicationByIdAsyncs(long applicationId);
         Task<ApplicationDetail> AddApplicationDetailAsync(ApplicationDetail applicationDetail);
         Task<ApplicationMaster?> UpdateApplicationAsync(UpdateApplicationRequestDto request);

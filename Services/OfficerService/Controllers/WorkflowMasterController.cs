@@ -94,10 +94,10 @@ namespace OfficerService.Controllers
                 var states = await _repository.GetAllStatesAsync();
                 var result = states.Select(s => new
                 {
-                    stateId = s.Id,
-                    stateName = s.StName,
-                    stCode = s.StCode,
-                    stUt = s.StUt,
+                    stateId = s.StateId,
+                    stateName = s.StateName,
+                    stCode = s.STCode,
+                    stUt = s.StateCode,
                 });
                 return Ok(result);
             }
@@ -119,8 +119,8 @@ namespace OfficerService.Controllers
                     WorkFlow_ID = wf.WorkFlowId,
                     WorkFlow_Name = wf.WorkFlowName,
                     StateID = wf.StateId,
-                    StateName = wf.State?.StName,
-                    StCode = wf.State?.StCode ?? 0,
+                    StateName = wf.State?.StateName,
+                    StCode = wf.State?.STCode ?? 0,
                     Is_Default = wf.IsDefault,
                     Is_Active = wf.IsActive,
                     CreatedOn = wf.CreatedOn
@@ -177,8 +177,8 @@ namespace OfficerService.Controllers
                     WorkFlow_ID = result.WorkFlowId,
                     WorkFlow_Name = result.WorkFlowName,
                     StateID = result.StateId,
-                    StateName = result.State?.StName,
-                    StCode = result.State?.StCode ?? 0,
+                    StateName = result.State?.StateName,
+                    StCode = result.State?.STCode ?? 0,
                     Is_Default = result.IsDefault,
                     Is_Active = result.IsActive,
                     CreatedOn = result.CreatedOn
@@ -238,8 +238,8 @@ namespace OfficerService.Controllers
                     WorkFlow_ID = result.WorkFlowId,
                     WorkFlow_Name = result.WorkFlowName,
                     StateID = result.StateId,
-                    StateName = result.State?.StName,
-                    StCode = result.State?.StCode ?? 0,
+                    StateName = result.State?.StateName,
+                    StCode = result.State?.STCode ?? 0,
                     Is_Default = result.IsDefault,
                     Is_Active = result.IsActive,
                     CreatedOn = result.CreatedOn

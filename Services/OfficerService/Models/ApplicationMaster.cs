@@ -30,7 +30,7 @@ namespace OfficerService.Models
         public DateTime? CreatedDate { get; set; }
 
         [Column("State_ID")]
-        public int? StateId { get; set; }
+        public int? StateId { get; set; }   // stores ST_CODE
 
         [Column("District_ID")]
         public int? DistrictId { get; set; }
@@ -55,6 +55,9 @@ namespace OfficerService.Models
 
         // Navigation properties
         public ICollection<ApplicationDetail>? ApplicationDetails { get; set; }
+
+        [ForeignKey(nameof(StateId))]
+        [InverseProperty(nameof(State.Applications))]
         public State? State { get; set; }
         public District? District { get; set; }
         public SubDistrict? SubDistrict { get; set; }
