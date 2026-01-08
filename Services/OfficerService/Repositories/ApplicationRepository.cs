@@ -878,124 +878,270 @@ namespace OfficerService.Repositories
             }
         }
 
-        public async Task<SourceDestinationDetailsDto?> GetSourceDestinationDetailsAsync(long applicationId, string registrationNo, int applicationCategoryId)
+        //public async Task<SourceDestinationDetailsDto?> GetSourceDestinationDetailsAsync(long applicationId, string registrationNo, int applicationCategoryId)
+        //{
+        //    try
+        //    {
+        //        var details = new SourceDestinationDetailsDto();
+        //        var produceSource = new ProduceSourceDto();
+        //        var destination = new DestinationDto();
+
+        //        // Get Produce Source Details
+        //        if (applicationCategoryId == 1) // NOC
+        //        {
+        //            var nocSource = await _context.NocSourcePlaces
+        //                .FirstOrDefaultAsync(nsp => nsp.ApplicationId == registrationNo);
+
+        //            if (nocSource != null)
+        //            {
+        //                produceSource.StateId = nocSource.StateId;
+        //                produceSource.CircleId = nocSource.CircleId;
+        //                produceSource.DivisionId = nocSource.DivisionId;
+        //                produceSource.RangeId = nocSource.RangeId;
+        //                produceSource.Address = nocSource.Address;
+        //                produceSource.PinCode = nocSource.PinCode;
+        //            }
+        //        }
+        //        else if (applicationCategoryId == 2) // Transit Pass
+        //        {
+        //            var tpSource = await _context.TpSourcePlaces
+        //                .FirstOrDefaultAsync(tsp => tsp.ApplicationId == registrationNo);
+
+        //            if (tpSource != null)
+        //            {
+        //                produceSource.StateId = tpSource.StateId;
+        //                produceSource.CircleId = tpSource.CircleId;
+        //                produceSource.DivisionId = tpSource.DivisionId;
+        //                produceSource.RangeId = tpSource.RangeId;
+        //                produceSource.Address = tpSource.Address;
+        //                produceSource.PinCode = tpSource.PinCode;
+        //            }
+        //        }
+
+        //        // Get Destination Details
+        //        if (applicationCategoryId == 1) // NOC
+        //        {
+        //            var nocDest = await _context.NocDestinationPlaces
+        //                .FirstOrDefaultAsync(ndp => ndp.ApplicationId == registrationNo);
+
+        //            if (nocDest != null)
+        //            {
+        //                destination.StateId = nocDest.StateId;
+        //                destination.CircleId = nocDest.CircleId;
+        //                destination.DivisionId = nocDest.DivisionId;
+        //                destination.RangeId = nocDest.RangeId;
+        //                destination.Address = nocDest.Address;
+        //                destination.PinCode = nocDest.PinCode;
+        //            }
+        //        }
+        //        else if (applicationCategoryId == 2) // Transit Pass
+        //        {
+        //            var tpDest = await _context.TpDestinationPlaces
+        //                .FirstOrDefaultAsync(tdp => tdp.ApplicationId == registrationNo);
+
+        //            if (tpDest != null)
+        //            {
+        //                destination.StateId = tpDest.StateId;
+        //                destination.CircleId = tpDest.CircleId;
+        //                destination.DivisionId = tpDest.DivisionId;
+        //                destination.RangeId = tpDest.RangeId;
+        //                destination.Address = tpDest.Address;
+        //                destination.PinCode = tpDest.PinCode;
+        //            }
+        //        }
+
+        //        // Get Government Depot Info for Source
+        //        var sourceGovDepot = await _context.GovernmentDepots
+        //            .FirstOrDefaultAsync(gd => gd.RegistrationNo == registrationNo &&
+        //                                      gd.Type == "source");
+
+        //        if (sourceGovDepot != null)
+        //        {
+        //            produceSource.PlaceObtained = "government_depot";
+        //            produceSource.GovernmentDepotName = sourceGovDepot.DepotName;
+        //            produceSource.GovernmentDepotType = sourceGovDepot.Type;
+        //        }
+
+        //        // Get Government Depot Info for Destination
+        //        var destGovDepot = await _context.GovernmentDepots
+        //            .FirstOrDefaultAsync(gd => gd.RegistrationNo == registrationNo &&
+        //                                      gd.Type == "destination");
+
+        //        if (destGovDepot != null)
+        //        {
+        //            destination.DestinationPlace = "government_depot";
+        //            destination.GovernmentDepotName = destGovDepot.DepotName;
+        //            destination.GovernmentDepotType = destGovDepot.Type;
+        //        }
+
+        //        // Get Latitude/Longitude
+        //        var latLong = await _context.SourceLatLongs
+        //            .FirstOrDefaultAsync(sll => sll.RegistrationNo == registrationNo);
+
+        //        if (latLong != null)
+        //        {
+        //            produceSource.Latitude = latLong.Latitude;
+        //            produceSource.Longitude = latLong.Longitude;
+        //        }
+
+        //        details.ProduceSource = produceSource;
+        //        details.Destination = destination;
+
+        //        return details;
+        //    }
+        //    catch (Exception ex)
+        //    {
+        //        _logger.LogError(ex, "Error getting source/destination details for RegistrationNo: {RegistrationNo}",
+        //            registrationNo);
+        //        return null;
+        //    }
+        //}
+
+        public async Task<SourceDestinationDetailsDto?> GetSourceDestinationDetailsAsync(
+    long applicationId,
+    string registrationNo,
+    int applicationCategoryId)
         {
             try
             {
-                var details = new SourceDestinationDetailsDto();
-                var produceSource = new ProduceSourceDto();
-                var destination = new DestinationDto();
+                // 1️⃣ Validate RegistrationNo against ApplicationDetails
+                var application = await _context.ApplicationDetails
+                    .AsNoTracking()
+                    .FirstOrDefaultAsync(a =>
+                        a.ApplicationId == applicationId &&
+                        a.RegistrationNo == registrationNo);
 
-                // Get Produce Source Details
+                if (application == null)
+                {
+                    _logger.LogWarning(
+                        "Invalid RegistrationNo {RegistrationNo} for ApplicationId {ApplicationId}",
+                        registrationNo, applicationId);
+
+                    return null;
+                }
+
+                // (Optional) Trust DB category instead of payload
+                applicationCategoryId = application.ApplicationCateogryId ?? 0;
+
+
+                var details = new SourceDestinationDetailsDto
+                {
+                    ProduceSource = new ProduceSourceDto(),
+                    Destination = new DestinationDto()
+                };
+
+                // 2️⃣ Source Place
                 if (applicationCategoryId == 1) // NOC
                 {
                     var nocSource = await _context.NocSourcePlaces
-                        .FirstOrDefaultAsync(nsp => nsp.ApplicationId == registrationNo);
+                        .AsNoTracking()
+                        .FirstOrDefaultAsync(x => x.ApplicationId == application.RegistrationNo);
 
-                    if (nocSource != null)
-                    {
-                        produceSource.StateId = nocSource.StateId;
-                        produceSource.CircleId = nocSource.CircleId;
-                        produceSource.DivisionId = nocSource.DivisionId;
-                        produceSource.RangeId = nocSource.RangeId;
-                        produceSource.Address = nocSource.Address;
-                        produceSource.PinCode = nocSource.PinCode;
-                    }
+                    MapSource(nocSource, details.ProduceSource);
                 }
                 else if (applicationCategoryId == 2) // Transit Pass
                 {
                     var tpSource = await _context.TpSourcePlaces
-                        .FirstOrDefaultAsync(tsp => tsp.ApplicationId == registrationNo);
+                        .AsNoTracking()
+                        .FirstOrDefaultAsync(x => x.ApplicationId == application.RegistrationNo);
 
-                    if (tpSource != null)
-                    {
-                        produceSource.StateId = tpSource.StateId;
-                        produceSource.CircleId = tpSource.CircleId;
-                        produceSource.DivisionId = tpSource.DivisionId;
-                        produceSource.RangeId = tpSource.RangeId;
-                        produceSource.Address = tpSource.Address;
-                        produceSource.PinCode = tpSource.PinCode;
-                    }
+                    MapSource(tpSource, details.ProduceSource);
                 }
 
-                // Get Destination Details
-                if (applicationCategoryId == 1) // NOC
+                // 3️⃣ Destination Place
+                if (applicationCategoryId == 1)
                 {
                     var nocDest = await _context.NocDestinationPlaces
-                        .FirstOrDefaultAsync(ndp => ndp.ApplicationId == registrationNo);
+                        .AsNoTracking()
+                        .FirstOrDefaultAsync(x => x.ApplicationId == application.RegistrationNo);
 
-                    if (nocDest != null)
-                    {
-                        destination.StateId = nocDest.StateId;
-                        destination.CircleId = nocDest.CircleId;
-                        destination.DivisionId = nocDest.DivisionId;
-                        destination.RangeId = nocDest.RangeId;
-                        destination.Address = nocDest.Address;
-                        destination.PinCode = nocDest.PinCode;
-                    }
+                    MapDestination(nocDest, details.Destination);
                 }
-                else if (applicationCategoryId == 2) // Transit Pass
+                else if (applicationCategoryId == 2)
                 {
                     var tpDest = await _context.TpDestinationPlaces
-                        .FirstOrDefaultAsync(tdp => tdp.ApplicationId == registrationNo);
+                        .AsNoTracking()
+                        .FirstOrDefaultAsync(x => x.ApplicationId == application.RegistrationNo);
 
-                    if (tpDest != null)
-                    {
-                        destination.StateId = tpDest.StateId;
-                        destination.CircleId = tpDest.CircleId;
-                        destination.DivisionId = tpDest.DivisionId;
-                        destination.RangeId = tpDest.RangeId;
-                        destination.Address = tpDest.Address;
-                        destination.PinCode = tpDest.PinCode;
-                    }
+                    MapDestination(tpDest, details.Destination);
                 }
 
-                // Get Government Depot Info for Source
-                var sourceGovDepot = await _context.GovernmentDepots
-                    .FirstOrDefaultAsync(gd => gd.RegistrationNo == registrationNo &&
-                                              gd.Type == "source");
+                // 4️⃣ Government Depot – Source
+                var sourceDepot = await _context.GovernmentDepots
+                    .AsNoTracking()
+                    .FirstOrDefaultAsync(g =>
+                        g.RegistrationNo == application.RegistrationNo &&
+                        g.Type == "source");
 
-                if (sourceGovDepot != null)
+                if (sourceDepot != null)
                 {
-                    produceSource.PlaceObtained = "government_depot";
-                    produceSource.GovernmentDepotName = sourceGovDepot.DepotName;
-                    produceSource.GovernmentDepotType = sourceGovDepot.Type;
+                    details.ProduceSource.PlaceObtained = "government_depot";
+                    details.ProduceSource.GovernmentDepotName = sourceDepot.DepotName;
+                    details.ProduceSource.GovernmentDepotType = sourceDepot.Type;
                 }
 
-                // Get Government Depot Info for Destination
-                var destGovDepot = await _context.GovernmentDepots
-                    .FirstOrDefaultAsync(gd => gd.RegistrationNo == registrationNo &&
-                                              gd.Type == "destination");
+                // 5️⃣ Government Depot – Destination
+                var destDepot = await _context.GovernmentDepots
+                    .AsNoTracking()
+                    .FirstOrDefaultAsync(g =>
+                        g.RegistrationNo == application.RegistrationNo &&
+                        g.Type == "destination");
 
-                if (destGovDepot != null)
+                if (destDepot != null)
                 {
-                    destination.DestinationPlace = "government_depot";
-                    destination.GovernmentDepotName = destGovDepot.DepotName;
-                    destination.GovernmentDepotType = destGovDepot.Type;
+                    details.Destination.DestinationPlace = "government_depot";
+                    details.Destination.GovernmentDepotName = destDepot.DepotName;
+                    details.Destination.GovernmentDepotType = destDepot.Type;
                 }
 
-                // Get Latitude/Longitude
+                // 6️⃣ Latitude / Longitude
                 var latLong = await _context.SourceLatLongs
-                    .FirstOrDefaultAsync(sll => sll.RegistrationNo == registrationNo);
+                    .AsNoTracking()
+                    .FirstOrDefaultAsync(x => x.RegistrationNo == application.RegistrationNo);
 
                 if (latLong != null)
                 {
-                    produceSource.Latitude = latLong.Latitude;
-                    produceSource.Longitude = latLong.Longitude;
+                    details.ProduceSource.Latitude = latLong.Latitude;
+                    details.ProduceSource.Longitude = latLong.Longitude;
                 }
-
-                details.ProduceSource = produceSource;
-                details.Destination = destination;
 
                 return details;
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Error getting source/destination details for RegistrationNo: {RegistrationNo}",
+                _logger.LogError(ex,
+                    "Error getting source/destination details for RegistrationNo: {RegistrationNo}",
                     registrationNo);
+
                 return null;
             }
         }
+
+        private static void MapSource(dynamic source, ProduceSourceDto dto)
+        {
+            if (source == null) return;
+
+            dto.StateId = source.StateId;
+            dto.CircleId = source.CircleId;
+            dto.DivisionId = source.DivisionId;
+            dto.RangeId = source.RangeId;
+            dto.Address = source.Address;
+            dto.PinCode = source.PinCode;
+        }
+
+        private static void MapDestination(dynamic dest, DestinationDto dto)
+        {
+            if (dest == null) return;
+
+            dto.StateId = dest.StateId;
+            dto.CircleId = dest.CircleId;
+            dto.DivisionId = dest.DivisionId;
+            dto.RangeId = dest.RangeId;
+            dto.Address = dest.Address;
+            dto.PinCode = dest.PinCode;
+        }
+
+
 
         public async Task<bool> CheckSourceDestinationExistsAsync(string registrationNo, int applicationCategoryId)
         {
@@ -1005,19 +1151,19 @@ namespace OfficerService.Repositories
                 {
                     var sourceExists = await _context.NocSourcePlaces
                         .AnyAsync(nsp => nsp.ApplicationId == registrationNo);
-                    var destExists = await _context.NocDestinationPlaces
-                        .AnyAsync(ndp => ndp.ApplicationId == registrationNo);
+                    //var destExists = await _context.NocDestinationPlaces
+                    //    .AnyAsync(ndp => ndp.ApplicationId == registrationNo);
 
-                    return sourceExists && destExists;
+                    return sourceExists; //&& destExists
                 }
                 else if (applicationCategoryId == 2) // Transit Pass
                 {
                     var sourceExists = await _context.TpSourcePlaces
                         .AnyAsync(tsp => tsp.ApplicationId == registrationNo);
-                    var destExists = await _context.TpDestinationPlaces
-                        .AnyAsync(tdp => tdp.ApplicationId == registrationNo);
+                    //var destExists = await _context.TpDestinationPlaces
+                    //    .AnyAsync(tdp => tdp.ApplicationId == registrationNo);
 
-                    return sourceExists && destExists;
+                    return sourceExists; // && destExists
                 }
 
                 return false;

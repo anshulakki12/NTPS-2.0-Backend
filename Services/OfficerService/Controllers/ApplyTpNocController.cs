@@ -376,15 +376,15 @@ namespace OfficerService.Controllers
             }
         }
 
-        [HttpGet("source-destination-details/{applicationId}/{forestProduceId}")]
-        public async Task<IActionResult> GetSourceDestinationDetails(long applicationId, int forestProduceId)
+        [HttpGet("source-destination-details/{applicationId}/{categoryId}")]
+        public async Task<IActionResult> GetSourceDestinationDetails(long applicationId, int categoryId)
         {
             try
             {
                 _logger.LogInformation("Getting source/destination details for ApplicationId: {ApplicationId}, ForestProduceId: {ForestProduceId}",
-                    applicationId, forestProduceId);
+                    applicationId, categoryId);
 
-                var result = await _applicationService.GetSourceDestinationDetailsAsync(applicationId, forestProduceId);
+                var result = await _applicationService.GetSourceDestinationDetailsAsync(applicationId, categoryId);
 
                 if (result == null)
                     return NotFound(new { success = false, message = "Source/destination details not found" });
@@ -447,6 +447,83 @@ namespace OfficerService.Controllers
                 _logger.LogError(ex, "Error checking source/destination existence for ApplicationId: {ApplicationId}",
                     applicationId);
 
+                return BadRequest(new
+                {
+                    success = false,
+                    message = ex.Message
+                });
+            }
+        }
+
+        [HttpGet("check-registration-source/{applicationDetailId}")]
+        public async Task<IActionResult> CheckRegistrationSourceExists(string applicationDetailId, [FromQuery] string category)
+        {
+            try
+            {
+                bool hasSourceData = false;
+
+                if (category.ToLower() == "transit pass")
+                {
+                    // Check TPSource table
+                    hasSourceData = await _context.TpSourcePlaces
+                        .AnyAsync(tsp => tsp.ApplicationId == applicationDetailId);
+                }
+                else if (category.ToLower() == "noc")
+                {
+                    // Check NOCSource table
+                    hasSourceData = await _context.NocSourcePlaces
+                        .AnyAsync(nsp => nsp.ApplicationId == applicationDetailId);
+                }
+
+                return Ok(new
+                {
+                    success = true,
+                    data = new { hasSourceData }
+                });
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error checking registration source for ApplicationDetailId: {ApplicationDetailId}",
+                    applicationDetailId);
+                return BadRequest(new
+                {
+                    success = false,
+                    message = ex.Message
+                });
+            }
+        }
+
+
+        [HttpGet("check-registration-sources/{applicationDetailId}")]
+        public async Task<IActionResult> CheckRegistrationSourcesExists(string applicationDetailId, [FromQuery] int category)
+        {
+            try
+            {
+                bool hasSourceData = false;
+
+                if (category == 2)
+                {
+                    // Check TPSource table
+                    hasSourceData = await _context.TpSourcePlaces
+                        .AnyAsync(tsp => tsp.ApplicationId == applicationDetailId);
+                }
+                else if (category == 1)
+                {
+                    // Check NOCSource table
+                    hasSourceData = await _context.NocSourcePlaces
+                        .AnyAsync(nsp => nsp.ApplicationId == applicationDetailId);
+                }
+
+                return Ok(new
+                {
+                    success = true,
+                    data = new { hasSourceData }
+                });
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error checking registration source for ApplicationDetailId: {ApplicationDetailId}",
+                    applicationDetailId);
                 return BadRequest(new
                 {
                     success = false,

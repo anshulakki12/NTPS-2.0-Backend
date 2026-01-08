@@ -149,7 +149,7 @@ namespace OfficerService.Services
                 {
                     ParseDetailStringValues(detail);
 
-                    applicationCategoryId = await DetermineApplicationCategory(
+                    applicationCategoryId = await DetermineApplicationsCategory(
                         detail.SpeciesId,
                         application.StateId ?? throw new Exception("Application StateId is null"));
 
@@ -566,30 +566,30 @@ namespace OfficerService.Services
         }
 
         // Helper method to map Forest Produce to Application Category using SpeciesMapping table
-        private async Task<int> DetermineApplicationCategory(int speciesId, int stateId)
+        private async Task<int> DetermineApplicationsCategory(int CategoryId, int stateId)
         {
             try
             {
                 _logger.LogInformation("Determining application category for ForestProduceId: {ForestProduceId}, StateId: {StateId}",
-                    speciesId, stateId);
+                    CategoryId, stateId);
 
                 // Query the SpeciesMapping table to get the CategoryID
                 var speciesMapping = await _context.SpeciesMapping
                     .FirstOrDefaultAsync(sm =>
-                        sm.SpeciesId == speciesId &&
+                        sm.SpeciesId == CategoryId &&
                         sm.StateId == stateId &&
                         sm.IsActive);
 
                 if (speciesMapping != null)
                 {
                     _logger.LogInformation("Found SpeciesMapping - CategoryID: {CategoryID} for speciesId: {speciesId}, StateId: {StateId}",
-                        speciesMapping.CategoryId, speciesId, stateId);
+                        speciesMapping.CategoryId, CategoryId, stateId);
                     return speciesMapping.CategoryId;
                 }
                 else
                 {
                     _logger.LogWarning("No active SpeciesMapping found for speciesId: {speciesId}, StateId: {StateId}, defaulting to Transit Pass (2)",
-                        speciesId, stateId);
+                        CategoryId, stateId);
 
                     // Default to Transit Pass if no mapping found
                     return 2; // Transit Pass
@@ -598,7 +598,47 @@ namespace OfficerService.Services
             catch (Exception ex)
             {
                 _logger.LogError(ex, "Error determining application category for speciesId: {speciesId}, StateId: {StateId}",
-                    speciesId, stateId);
+                    CategoryId, stateId);
+
+                // Default to Transit Pass on error
+                return 2; // Transit Pass
+            }
+        }
+
+        // Helper method to map Forest Produce to Application Category using SpeciesMapping table
+        private async Task<int> DetermineApplicationCategory(int CategoryId, int stateId)
+        {
+            try
+            {
+                _logger.LogInformation("Determining application category for ForestProduceId: {ForestProduceId}, StateId: {StateId}",
+                    CategoryId, stateId);
+
+                // Query the SpeciesMapping table to get the CategoryID
+                var speciesMapping = await _context.SpeciesMapping
+                    .FirstOrDefaultAsync(sm =>
+                        sm.CategoryId == CategoryId &&
+                        sm.StateId == stateId &&
+                        sm.IsActive);
+
+                if (speciesMapping != null)
+                {
+                    _logger.LogInformation("Found SpeciesMapping - CategoryID: {CategoryID} for speciesId: {speciesId}, StateId: {StateId}",
+                        speciesMapping.CategoryId, CategoryId, stateId);
+                    return speciesMapping.CategoryId;
+                }
+                else
+                {
+                    _logger.LogWarning("No active SpeciesMapping found for speciesId: {speciesId}, StateId: {StateId}, defaulting to Transit Pass (2)",
+                        CategoryId, stateId);
+
+                    // Default to Transit Pass if no mapping found
+                    return 2; // Transit Pass
+                }
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error determining application category for speciesId: {speciesId}, StateId: {StateId}",
+                    CategoryId, stateId);
 
                 // Default to Transit Pass on error
                 return 2; // Transit Pass
@@ -711,7 +751,7 @@ namespace OfficerService.Services
                     throw new Exception("Application or State not found");
 
                 // Determine Application Category
-                int applicationCategoryId = await DetermineApplicationCategory(
+                int applicationCategoryId = await DetermineApplicationsCategory(
                     request.SpeciesId,
                     application.StateId ?? throw new Exception("Application StateId is null"));
 
@@ -883,12 +923,12 @@ namespace OfficerService.Services
             }
         }
 
-        public async Task<SourceDestinationDetailsDto?> GetSourceDestinationDetailsAsync(long applicationId, int forestProduceId)
+        public async Task<SourceDestinationDetailsDto?> GetSourceDestinationDetailsAsync(long applicationId, int categoryId)
         {
             try
             {
                 _logger.LogInformation("Getting source/destination details for ApplicationId: {ApplicationId}, ForestProduceId: {ForestProduceId}",
-                    applicationId, forestProduceId);
+                    applicationId, categoryId);
 
                 // Get application to determine state
                 var application = await _context.ApplicationMasters
@@ -899,7 +939,7 @@ namespace OfficerService.Services
 
                 // Determine application category id
                 int applicationCategoryId = await DetermineApplicationCategory(
-                    forestProduceId,
+                    categoryId,
                     application.StateId ?? throw new Exception("Application StateId is null"));
 
                 // Get registration number for this forest produce
