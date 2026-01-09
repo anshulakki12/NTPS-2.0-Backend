@@ -232,16 +232,108 @@ namespace OfficerService.DtoModels
         }
 
         // New DTOs for source and destination
+        //public class SaveProduceSourceRequestDto
+        //{
+        //    [Required]
+        //    public long ApplicationId { get; set; }
+
+        //    [Required]
+        //    public int SpeciesId { get; set; }
+
+        //    [Required]
+        //    public string RegistrationNo { get; set; } = string.Empty;
+
+        //    // Government Depot Info
+        //    public string? GovernmentDepotName { get; set; }
+        //    public string? GovernmentDepotType { get; set; }
+
+        //    // Common Source Fields
+        //    [Required]
+        //    public int StateId { get; set; }
+
+        //    [Required]
+        //    public int CircleId { get; set; }
+
+        //    [Required]
+        //    public int DivisionId { get; set; }
+
+        //    [Required]
+        //    public int RangeId { get; set; }
+
+        //    [Required]
+        //    public string Address { get; set; } = string.Empty;
+
+        //    public string? PinCode { get; set; }
+
+        //    public string? Latitude { get; set; }
+        //    public string? Longitude { get; set; }
+
+        //    // Place obtained type
+        //    [Required]
+        //    public string PlaceObtained { get; set; } = string.Empty;
+        //}
+
+        //public class SaveDestinationRequestDto
+        //{
+        //    [Required]
+        //    public long ApplicationId { get; set; }
+
+        //    [Required]
+        //    public int SpeciesId { get; set; }
+
+        //    [Required]
+        //    public string RegistrationNo { get; set; } = string.Empty;
+
+        //    // Government Depot Info
+        //    public string? GovernmentDepotName { get; set; }
+        //    public string? GovernmentDepotType { get; set; }
+
+        //    // Common Destination Fields
+        //    [Required]
+        //    public int StateId { get; set; }
+
+        //    [Required]
+        //    public int CircleId { get; set; }
+
+        //    [Required]
+        //    public int DivisionId { get; set; }
+
+        //    [Required]
+        //    public int RangeId { get; set; }
+
+        //    [Required]
+        //    public string Address { get; set; } = string.Empty;
+
+        //    public string? PinCode { get; set; }
+
+        //    // Destination place type
+        //    [Required]
+        //    public string DestinationPlace { get; set; } = string.Empty;
+        //}
+
+        //public class SourceDestinationResponseDto
+        //{
+        //    public bool Success { get; set; }
+        //    public string Message { get; set; } = string.Empty;
+        //    public long? SourceId { get; set; }
+        //    public long? DestinationId { get; set; }
+        //    public int? GovernmentDepotId { get; set; }
+        //    public int? LatLongId { get; set; }
+        //}
+
+        // Update SourceDestinationResponseDto
+
+        // Update SaveProduceSourceRequestDto to include CategoryId
         public class SaveProduceSourceRequestDto
         {
             [Required]
             public long ApplicationId { get; set; }
 
             [Required]
-            public int SpeciesId { get; set; }
+            public string RegistrationNo { get; set; } = string.Empty;
 
             [Required]
-            public string RegistrationNo { get; set; } = string.Empty;
+            public int CategoryId { get; set; } // 1 for NOC, 2 for Transit Pass
 
             // Government Depot Info
             public string? GovernmentDepotName { get; set; }
@@ -273,16 +365,17 @@ namespace OfficerService.DtoModels
             public string PlaceObtained { get; set; } = string.Empty;
         }
 
+        // Update SaveDestinationRequestDto similarly
         public class SaveDestinationRequestDto
         {
             [Required]
             public long ApplicationId { get; set; }
 
             [Required]
-            public int SpeciesId { get; set; }
+            public string RegistrationNo { get; set; } = string.Empty;
 
             [Required]
-            public string RegistrationNo { get; set; } = string.Empty;
+            public int CategoryId { get; set; } // 1 for NOC, 2 for Transit Pass
 
             // Government Depot Info
             public string? GovernmentDepotName { get; set; }
@@ -310,7 +403,6 @@ namespace OfficerService.DtoModels
             [Required]
             public string DestinationPlace { get; set; } = string.Empty;
         }
-
         public class SourceDestinationResponseDto
         {
             public bool Success { get; set; }
@@ -318,7 +410,7 @@ namespace OfficerService.DtoModels
             public long? SourceId { get; set; }
             public long? DestinationId { get; set; }
             public int? GovernmentDepotId { get; set; }
-            public int? LatLongId { get; set; }
+            public List<int> LatLongIds { get; set; } = new List<int>();
         }
 
         public class SourceDestinationDetailsDto
