@@ -1176,44 +1176,44 @@ namespace OfficerService.Repositories
                     throw new Exception($"Unknown application category: {applicationCategoryId}");
                 }
 
-                // 2. Save Government Depot if applicable
-                if (request.DestinationPlace == "government_depot" &&
-                    !string.IsNullOrEmpty(request.GovernmentDepotName))
-                {
-                    var existingGovDepot = await _context.GovernmentDepots
-                        .FirstOrDefaultAsync(gd => gd.RegistrationNo == request.RegistrationNo &&
-                                                  gd.Type == "destination");
+                //// 2. Save Government Depot if applicable
+                //if (request.DestinationPlace == "government_depot" &&
+                //    !string.IsNullOrEmpty(request.GovernmentDepotName))
+                //{
+                //    var existingGovDepot = await _context.GovernmentDepots
+                //        .FirstOrDefaultAsync(gd => gd.RegistrationNo == request.RegistrationNo &&
+                //                                  gd.Type == "destination");
 
-                    if (existingGovDepot != null)
-                    {
-                        // Update existing
-                        existingGovDepot.DepotName = request.GovernmentDepotName;
-                        existingGovDepot.Type = request.GovernmentDepotType;
-                        existingGovDepot.SourceType = "web";
-                        existingGovDepot.PlaceType = "government";
-                        existingGovDepot.UpdatedDate = DateTime.UtcNow;
+                //    if (existingGovDepot != null)
+                //    {
+                //        // Update existing
+                //        existingGovDepot.DepotName = request.GovernmentDepotName;
+                //        existingGovDepot.Type = request.GovernmentDepotType;
+                //        existingGovDepot.SourceType = "web";
+                //        existingGovDepot.PlaceType = "government";
+                //        existingGovDepot.UpdatedDate = DateTime.UtcNow;
 
-                        _context.GovernmentDepots.Update(existingGovDepot);
-                        govDepotId = existingGovDepot.GdId;
-                    }
-                    else
-                    {
-                        // Create new
-                        var governmentDepot = new GovernmentDepot
-                        {
-                            RegistrationNo = request.RegistrationNo,
-                            DepotName = request.GovernmentDepotName,
-                            Type = "destination",
-                            SourceType = "web",
-                            PlaceType = "government",
-                            CreatedDate = DateTime.UtcNow
-                        };
+                //        _context.GovernmentDepots.Update(existingGovDepot);
+                //        govDepotId = existingGovDepot.GdId;
+                //    }
+                //    else
+                //    {
+                //        // Create new
+                //        var governmentDepot = new GovernmentDepot
+                //        {
+                //            RegistrationNo = request.RegistrationNo,
+                //            DepotName = request.GovernmentDepotName,
+                //            Type = "destination",
+                //            SourceType = "web",
+                //            PlaceType = "government",
+                //            CreatedDate = DateTime.UtcNow
+                //        };
 
-                        _context.GovernmentDepots.Add(governmentDepot);
-                        await _context.SaveChangesAsync();
-                        govDepotId = governmentDepot.GdId;
-                    }
-                }
+                //        _context.GovernmentDepots.Add(governmentDepot);
+                //        await _context.SaveChangesAsync();
+                //        govDepotId = governmentDepot.GdId;
+                //    }
+                //}
 
                 await transaction.CommitAsync();
 
@@ -1459,6 +1459,18 @@ namespace OfficerService.Repositories
                 {
                     details.ProduceSource.Latitude = latLong.Latitude;
                     details.ProduceSource.Longitude = latLong.Longitude;
+                }
+
+                // 7️⃣ Private Land Details
+                var privateLand = await _context.Privatelands
+                    .AsNoTracking()
+                    .FirstOrDefaultAsync(pl => pl.RegistrationNo == application.RegistrationNo &&
+                                               pl.Type == "source");
+
+                if (privateLand != null)
+                {
+                    details.ProduceSource.PlaceObtained = "private_land";
+                    details.ProduceSource.SurveyNumber = privateLand.SurveyNo;
                 }
 
                 return details;

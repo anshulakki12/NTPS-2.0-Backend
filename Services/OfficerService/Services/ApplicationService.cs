@@ -925,6 +925,220 @@ namespace OfficerService.Services
 
 
         // Update the ApplicationService.cs SaveProduceSourceAsync method
+        //public async Task<SourceDestinationResponseDto> SaveProduceSourceAsync(SaveProduceSourceRequestDto request)
+        //{
+        //    try
+        //    {
+        //        _logger.LogInformation("Saving produce source for RegistrationNo: {RegistrationNo}, CategoryId: {CategoryId}",
+        //            request.RegistrationNo, request.CategoryId);
+
+        //        using var transaction = await _context.Database.BeginTransactionAsync();
+
+        //        try
+        //        {
+        //            long sourceId = 0;
+        //            int govDepotId = 0;
+        //            List<int> latLongIds = new List<int>();
+
+        //            // Get all registration numbers for this application to save sourceLatLong for all
+        //            var allRegistrations = await _context.ApplicationDetails
+        //                .Where(ad => ad.ApplicationId == request.ApplicationId)
+        //                .Select(ad => new { ad.RegistrationNo, ad.ApplicationCateogryId })
+        //                .ToListAsync();
+
+        //            // 1. Save to appropriate source place table based on category
+        //            if (request.CategoryId == 1) // NOC
+        //            {
+        //                var existingNocSource = await _context.NocSourcePlaces
+        //                    .FirstOrDefaultAsync(nsp => nsp.ApplicationId == request.RegistrationNo);
+
+        //                if (existingNocSource != null)
+        //                {
+        //                    // Update existing record
+        //                    existingNocSource.StateId = request.StateId;
+        //                    existingNocSource.CircleId = request.CircleId;
+        //                    existingNocSource.DivisionId = request.DivisionId;
+        //                    existingNocSource.RangeId = request.RangeId;
+        //                    existingNocSource.Address = request.Address;
+        //                    existingNocSource.PinCode = request.PinCode;
+        //                    existingNocSource.UpdatedDate = DateTime.UtcNow;
+
+        //                    _context.NocSourcePlaces.Update(existingNocSource);
+        //                    sourceId = existingNocSource.SourceId;
+        //                }
+        //                else
+        //                {
+        //                    // Create new record
+        //                    var nocSourcePlace = new NocSourcePlace
+        //                    {
+        //                        ApplicationId = request.RegistrationNo,
+        //                        StateId = request.StateId,
+        //                        CircleId = request.CircleId,
+        //                        DivisionId = request.DivisionId,
+        //                        RangeId = request.RangeId,
+        //                        Address = request.Address,
+        //                        PinCode = request.PinCode,
+        //                        CreatedDate = DateTime.UtcNow
+        //                    };
+
+        //                    _context.NocSourcePlaces.Add(nocSourcePlace);
+        //                    await _context.SaveChangesAsync();
+        //                    sourceId = nocSourcePlace.SourceId;
+        //                }
+        //            }
+        //            else if (request.CategoryId == 2) // Transit Pass
+        //            {
+        //                var existingTpSource = await _context.TpSourcePlaces
+        //                    .FirstOrDefaultAsync(tsp => tsp.ApplicationId == request.RegistrationNo);
+
+        //                if (existingTpSource != null)
+        //                {
+        //                    // Update existing record
+        //                    existingTpSource.StateId = request.StateId;
+        //                    existingTpSource.CircleId = request.CircleId;
+        //                    existingTpSource.DivisionId = request.DivisionId;
+        //                    existingTpSource.RangeId = request.RangeId;
+        //                    existingTpSource.Address = request.Address;
+        //                    existingTpSource.PinCode = request.PinCode;
+        //                    existingTpSource.UpdatedDate = DateTime.UtcNow;
+
+        //                    _context.TpSourcePlaces.Update(existingTpSource);
+        //                    sourceId = existingTpSource.SourceId;
+        //                }
+        //                else
+        //                {
+        //                    // Create new record
+        //                    var tpSourcePlace = new TpSourcePlace
+        //                    {
+        //                        ApplicationId = request.RegistrationNo,
+        //                        StateId = request.StateId,
+        //                        CircleId = request.CircleId,
+        //                        DivisionId = request.DivisionId,
+        //                        RangeId = request.RangeId,
+        //                        Address = request.Address,
+        //                        PinCode = request.PinCode,
+        //                        CreatedDate = DateTime.UtcNow
+        //                    };
+
+        //                    _context.TpSourcePlaces.Add(tpSourcePlace);
+        //                    await _context.SaveChangesAsync();
+        //                    sourceId = tpSourcePlace.SourceId;
+        //                }
+        //            }
+        //            else
+        //            {
+        //                throw new Exception($"Unknown category: {request.CategoryId}");
+        //            }
+
+        //            // 2. Save Government Depot if applicable
+        //            if (request.PlaceObtained == "government_depot" &&
+        //                !string.IsNullOrEmpty(request.GovernmentDepotName))
+        //            {
+        //                var existingGovDepot = await _context.GovernmentDepots
+        //                    .FirstOrDefaultAsync(gd => gd.RegistrationNo == request.RegistrationNo &&
+        //                                              gd.Type == "source");
+
+        //                if (existingGovDepot != null)
+        //                {
+        //                    // Update existing
+        //                    existingGovDepot.DepotName = request.GovernmentDepotName;
+        //                    existingGovDepot.Type = request.GovernmentDepotType;
+        //                    existingGovDepot.SourceType = "web";
+        //                    existingGovDepot.PlaceType = "government";
+        //                    existingGovDepot.UpdatedDate = DateTime.UtcNow;
+
+        //                    _context.GovernmentDepots.Update(existingGovDepot);
+        //                    govDepotId = existingGovDepot.GdId;
+        //                }
+        //                else
+        //                {
+        //                    // Create new
+        //                    var governmentDepot = new GovernmentDepot
+        //                    {
+        //                        RegistrationNo = request.RegistrationNo,
+        //                        DepotName = request.GovernmentDepotName,
+        //                        Type = "source",
+        //                        SourceType = "web",
+        //                        PlaceType = "government",
+        //                        CreatedDate = DateTime.UtcNow
+        //                    };
+
+        //                    _context.GovernmentDepots.Add(governmentDepot);
+        //                    await _context.SaveChangesAsync();
+        //                    govDepotId = governmentDepot.GdId;
+        //                }
+        //            }
+
+        //            // 3. Save Latitude/Longitude for ALL registration numbers of this application
+        //            if (!string.IsNullOrEmpty(request.Latitude) && !string.IsNullOrEmpty(request.Longitude))
+        //            {
+        //                foreach (var reg in allRegistrations)
+        //                {
+        //                    if (string.IsNullOrEmpty(reg.RegistrationNo)) continue;
+
+        //                    var existingLatLong = await _context.SourceLatLongs
+        //                        .FirstOrDefaultAsync(sll => sll.RegistrationNo == reg.RegistrationNo);
+
+        //                    if (existingLatLong != null)
+        //                    {
+        //                        // Update existing
+        //                        existingLatLong.Latitude = request.Latitude;
+        //                        existingLatLong.Longitude = request.Longitude;
+        //                        existingLatLong.UpdatedDate = DateTime.UtcNow;
+
+        //                        _context.SourceLatLongs.Update(existingLatLong);
+        //                        latLongIds.Add(existingLatLong.LatLongId);
+        //                    }
+        //                    else
+        //                    {
+        //                        // Create new
+        //                        var sourceLatLong = new SourceLatLong
+        //                        {
+        //                            RegistrationNo = reg.RegistrationNo,
+        //                            Latitude = request.Latitude,
+        //                            Longitude = request.Longitude,
+        //                            CreatedDate = DateTime.UtcNow
+        //                        };
+
+        //                        _context.SourceLatLongs.Add(sourceLatLong);
+        //                        await _context.SaveChangesAsync();
+        //                        latLongIds.Add(sourceLatLong.LatLongId);
+        //                    }
+        //                }
+        //            }
+
+        //            await transaction.CommitAsync();
+
+        //            return new SourceDestinationResponseDto
+        //            {
+        //                Success = true,
+        //                Message = "Produce source details saved successfully",
+        //                SourceId = sourceId,
+        //                GovernmentDepotId = govDepotId,
+        //                LatLongIds = latLongIds
+        //            };
+        //        }
+        //        catch (Exception ex)
+        //        {
+        //            await transaction.RollbackAsync();
+        //            _logger.LogError(ex, "Error saving produce source for RegistrationNo: {RegistrationNo}",
+        //                request.RegistrationNo);
+        //            throw;
+        //        }
+        //    }
+        //    catch (Exception ex)
+        //    {
+        //        _logger.LogError(ex, "Error in SaveProduceSourceAsync for RegistrationNo: {RegistrationNo}",
+        //            request.RegistrationNo);
+        //        throw;
+        //    }
+        //}
+
+
+
+        // Update the SaveDestinationAsync method similarly
+
+        // Update the SaveProduceSourceAsync method
         public async Task<SourceDestinationResponseDto> SaveProduceSourceAsync(SaveProduceSourceRequestDto request)
         {
             try
@@ -938,12 +1152,15 @@ namespace OfficerService.Services
                 {
                     long sourceId = 0;
                     int govDepotId = 0;
+                    List<int> privateLandIds = new List<int>();
                     List<int> latLongIds = new List<int>();
 
-                    // Get all registration numbers for this application to save sourceLatLong for all
+                    // Get all registration numbers for this application
                     var allRegistrations = await _context.ApplicationDetails
-                        .Where(ad => ad.ApplicationId == request.ApplicationId)
+                        .Where(ad => ad.ApplicationId == request.ApplicationId &&
+                                   ad.RegistrationNo != null)
                         .Select(ad => new { ad.RegistrationNo, ad.ApplicationCateogryId })
+                        .Distinct()
                         .ToListAsync();
 
                     // 1. Save to appropriate source place table based on category
@@ -1069,7 +1286,47 @@ namespace OfficerService.Services
                         }
                     }
 
-                    // 3. Save Latitude/Longitude for ALL registration numbers of this application
+                    // 3. Save Private Land if applicable
+                    if (request.PlaceObtained == "private_land" &&
+                        !string.IsNullOrEmpty(request.SurveyNumber))
+                    {
+                        // Save private land for each registration number
+                        foreach (var reg in allRegistrations)
+                        {
+                            if (string.IsNullOrEmpty(reg.RegistrationNo)) continue;
+
+                            var existingPrivateLand = await _context.Privatelands
+                                .FirstOrDefaultAsync(pl => pl.RegistrationNo == reg.RegistrationNo &&
+                                                           pl.Type == "source");
+
+                            if (existingPrivateLand != null)
+                            {
+                                // Update existing
+                                existingPrivateLand.SurveyNo = request.SurveyNumber;
+                                existingPrivateLand.UpdatedDate = DateTime.UtcNow;
+
+                                _context.Privatelands.Update(existingPrivateLand);
+                                privateLandIds.Add(existingPrivateLand.Id);
+                            }
+                            else
+                            {
+                                // Create new
+                                var privateLand = new Privateland
+                                {
+                                    RegistrationNo = reg.RegistrationNo,
+                                    SurveyNo = request.SurveyNumber,
+                                    Type = "source",
+                                    CreatedDate = DateTime.UtcNow
+                                };
+
+                                _context.Privatelands.Add(privateLand);
+                                await _context.SaveChangesAsync();
+                                privateLandIds.Add(privateLand.Id);
+                            }
+                        }
+                    }
+
+                    // 4. Save Latitude/Longitude for ALL registration numbers of this application
                     if (!string.IsNullOrEmpty(request.Latitude) && !string.IsNullOrEmpty(request.Longitude))
                     {
                         foreach (var reg in allRegistrations)
@@ -1115,6 +1372,7 @@ namespace OfficerService.Services
                         Message = "Produce source details saved successfully",
                         SourceId = sourceId,
                         GovernmentDepotId = govDepotId,
+                        PrivateLandIds = privateLandIds,
                         LatLongIds = latLongIds
                     };
                 }
@@ -1134,7 +1392,6 @@ namespace OfficerService.Services
             }
         }
 
-        // Update the SaveDestinationAsync method similarly
         public async Task<SourceDestinationResponseDto> SaveDestinationAsync(SaveDestinationRequestDto request)
         {
             try
