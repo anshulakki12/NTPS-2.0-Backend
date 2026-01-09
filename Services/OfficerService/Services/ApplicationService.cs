@@ -1233,44 +1233,44 @@ namespace OfficerService.Services
                         throw new Exception($"Unknown category: {request.CategoryId}");
                     }
 
-                    // 2. Save Government Depot if applicable
-                    if (request.DestinationPlace == "government_depot" &&
-                        !string.IsNullOrEmpty(request.GovernmentDepotName))
-                    {
-                        var existingGovDepot = await _context.GovernmentDepots
-                            .FirstOrDefaultAsync(gd => gd.RegistrationNo == request.RegistrationNo &&
-                                                      gd.Type == "destination");
+                    //// 2. Save Government Depot if applicable
+                    //if (request.DestinationPlace == "government_depot" &&
+                    //    !string.IsNullOrEmpty(request.GovernmentDepotName))
+                    //{
+                    //    var existingGovDepot = await _context.GovernmentDepots
+                    //        .FirstOrDefaultAsync(gd => gd.RegistrationNo == request.RegistrationNo &&
+                    //                                  gd.Type == "destination");
 
-                        if (existingGovDepot != null)
-                        {
-                            // Update existing
-                            existingGovDepot.DepotName = request.GovernmentDepotName;
-                            existingGovDepot.Type = request.GovernmentDepotType;
-                            existingGovDepot.SourceType = "web";
-                            existingGovDepot.PlaceType = "government";
-                            existingGovDepot.UpdatedDate = DateTime.UtcNow;
+                    //    if (existingGovDepot != null)
+                    //    {
+                    //        // Update existing
+                    //        existingGovDepot.DepotName = request.GovernmentDepotName;
+                    //        existingGovDepot.Type = request.GovernmentDepotType;
+                    //        existingGovDepot.SourceType = "web";
+                    //        existingGovDepot.PlaceType = "government";
+                    //        existingGovDepot.UpdatedDate = DateTime.UtcNow;
 
-                            _context.GovernmentDepots.Update(existingGovDepot);
-                            govDepotId = existingGovDepot.GdId;
-                        }
-                        else
-                        {
-                            // Create new
-                            var governmentDepot = new GovernmentDepot
-                            {
-                                RegistrationNo = request.RegistrationNo,
-                                DepotName = request.GovernmentDepotName,
-                                Type = "destination",
-                                SourceType = "web",
-                                PlaceType = "government",
-                                CreatedDate = DateTime.UtcNow
-                            };
+                    //        _context.GovernmentDepots.Update(existingGovDepot);
+                    //        govDepotId = existingGovDepot.GdId;
+                    //    }
+                    //    else
+                    //    {
+                    //        // Create new
+                    //        var governmentDepot = new GovernmentDepot
+                    //        {
+                    //            RegistrationNo = request.RegistrationNo,
+                    //            DepotName = request.GovernmentDepotName,
+                    //            Type = "destination",
+                    //            SourceType = "web",
+                    //            PlaceType = "government",
+                    //            CreatedDate = DateTime.UtcNow
+                    //        };
 
-                            _context.GovernmentDepots.Add(governmentDepot);
-                            await _context.SaveChangesAsync();
-                            govDepotId = governmentDepot.GdId;
-                        }
-                    }
+                    //        _context.GovernmentDepots.Add(governmentDepot);
+                    //        await _context.SaveChangesAsync();
+                    //        govDepotId = governmentDepot.GdId;
+                    //    }
+                    //}
 
                     await transaction.CommitAsync();
 
