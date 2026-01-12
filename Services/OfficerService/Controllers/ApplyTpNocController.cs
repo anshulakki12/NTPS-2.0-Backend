@@ -517,7 +517,11 @@ namespace OfficerService.Controllers
                 return Ok(new
                 {
                     success = true,
-                    data = new { hasSourceData }
+                    data = new
+                    {
+                        applicationId = applicationDetailId,
+                        hasSourceData = hasSourceData
+                    }
                 });
             }
             catch (Exception ex)
