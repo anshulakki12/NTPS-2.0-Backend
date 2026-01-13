@@ -201,7 +201,7 @@ namespace OfficerService.Services
                         ApplicationCateogryId = applicationCategoryId,
                         RegistrationNo = registrationNo,
                         CreatedDate = DateTime.UtcNow,
-                        CreateByUserId = "AP-Ans000"
+                        CreateByUserId = request.UserId
                     };
 
                     _context.ApplicationDetails.Add(applicationDetail);

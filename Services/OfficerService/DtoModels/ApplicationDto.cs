@@ -44,6 +44,7 @@ namespace OfficerService.DtoModels
         {
             public long ApplicationId { get; set; }
             public int ForestProduceId { get; set; }
+            public string UserId { get; set; }
             public List<ProduceDetailDto> ProduceDetails { get; set; } = new();
         }
 
