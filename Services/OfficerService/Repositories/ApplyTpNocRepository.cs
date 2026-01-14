@@ -46,7 +46,8 @@ namespace OfficerService.Repositories
                 {
                     SpeciesID = sm.MasterSpecies.SpeciesID,
                     Name = sm.MasterSpecies.Name,
-                    CategoryId=sm.CategoryId
+                    CategoryId=sm.CategoryId,
+                    SpeciesMappingId = sm.SpeciesMappingId
                 })
                 .Distinct()
                 .ToListAsync();

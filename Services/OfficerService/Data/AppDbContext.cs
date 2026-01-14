@@ -51,6 +51,7 @@ namespace OfficerService.Data
         public DbSet<NocSourcePlace> NocSourcePlaces { get; set; }
 
         public DbSet<Privateland> Privatelands { get; set; }
+        public DbSet<PhotoForestProduce> PhotoForestProduces { get; set; }
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
             // Configure the relationship between OfficerRegistration and OfficerDetails
