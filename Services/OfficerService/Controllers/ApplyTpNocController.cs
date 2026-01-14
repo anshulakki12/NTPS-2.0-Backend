@@ -627,6 +627,69 @@ namespace OfficerService.Controllers
             }
         }
 
+        [HttpGet("applications-details/{applicationId}")]
+        public async Task<IActionResult> GetApplicationsDetails(long applicationId)
+        {
+            try
+            {
+                // Get application master with projection to avoid circular reference
+                var application = await _context.ApplicationMasters
+                  .Where(a => a.ApplicationId == applicationId)
+                  .Select(a => new
+                  {
+                      a.ApplicationId,
+                      a.Status,
+                      a.ApplicationStatus,
+                      a.CreateByUserId,
+                      a.CreateByUserName,
+                      a.CreatedDate,
+                      a.StateId,
+                      a.DistrictId,
+                      a.SubDistrictId,
+                      a.ForestProduceId,
+                      a.UpdatedByUserId,
+                      a.Remarks,
+                      a.UpdatedDate,
+                      a.UpdatedByUserName
+                  })
+                  .FirstOrDefaultAsync();
+
+                if (application == null)
+                    return NotFound(new { success = false, message = "Application not found" });
+
+                // Get application details with projection
+                var applicationDetails = await _context.ApplicationDetails
+                  .Where(ad => ad.ApplicationId == applicationId && ad.RegistrationNo != null)
+                  .Include(ad => ad.ApplicationCategory)
+                  .Select(ad => new
+                  {
+                      ad.Id,
+                      ad.ApplicationId,
+                      ad.RegistrationNo,
+                      ad.ApplicationCateogryId,
+                      ad.CreateByUserId,
+                      ad.CreatedDate,
+                      CategoryName = ad.ApplicationCategory != null ? ad.ApplicationCategory.CategoryName : "Unknown"
+                  })
+                  .ToListAsync();
+
+                return Ok(new
+                {
+                    success = true,
+                    data = new
+                    {
+                        application = application,
+                        applicationDetails = applicationDetails
+                    }
+                });
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error getting application details for ApplicationId: {ApplicationId}", applicationId);
+                return BadRequest(new { success = false, message = ex.Message });
+            }
+        }
+
         private async Task<List<object>> GetSpeciesLogsByRegistrationNoAsync(string registrationNo)
         {
             var allLogs = new List<object>();
