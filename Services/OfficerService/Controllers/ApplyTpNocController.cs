@@ -794,5 +794,43 @@ namespace OfficerService.Controllers
 
             return allLogs;
         }
+
+        [HttpGet("documents")]
+        public IActionResult GetDocuments()
+        {
+            var documents = new[]
+            {
+    new
+    {
+        documentTypeId = "DOC001",
+        documentName = "Photo of the Forest Produced",
+        isActive = true,
+        isMandatory = true
+    },
+    new
+    {
+        documentTypeId = "DOC002",
+        documentName = "Proof of ownership(Land Revenue Records)",
+        isActive = false,
+        isMandatory = false
+    },
+    new
+    {
+        documentTypeId = "DOC003",
+        documentName = "Document of felling order",
+        isActive = false,
+        isMandatory = false
+    },
+    new
+    {
+        documentTypeId = "DOC004",
+        documentName = "Any Other document",
+        isActive = true,
+        isMandatory = false
+    }
+};
+            return Ok(documents);
+        }
+
     }
 }

@@ -69,14 +69,6 @@ namespace OfficerService.DtoModels
             public List<SpeciesLogResponseDto> SpeciesLogs { get; set; } = new List<SpeciesLogResponseDto>();
         }
 
-        //public class ProduceDetailResponseDto
-        //{
-        //    public bool Success { get; set; }
-        //    public string Message { get; set; } = string.Empty;
-        //    public string? RegistrationNo { get; set; }
-        //    public long ApplicationDetailId { get; set; }
-        //}
-
         public class ProduceDetailResponseDto
         {
             public bool Success { get; set; }
@@ -86,52 +78,13 @@ namespace OfficerService.DtoModels
             public List<SpeciesLogResponse> SavedLogs { get; set; } = new();
         }
 
-        //public class ProduceDetailDto
-        //{
-        //    public int SpeciesId { get; set; }
-
-        //    // Common fields
-        //    public decimal? Quantity { get; set; }
-        //    public string? Unit { get; set; }
-        //    public decimal? Volume { get; set; }
-
-        //    // String versions for parsing
-        //    public string? QuantityStr { get; set; }
-        //    public string? VolumeStr { get; set; }
-
-        //    // Bamboo specific
-        //    public decimal? GirthClass { get; set; }
-        //    public string? GirthClassStr { get; set; }
-        //    public decimal? Length { get; set; }
-        //    public string? LengthStr { get; set; }
-
-        //    // Round Timber specific
-        //    public int? NoOfLogs { get; set; }
-        //    public string? NoOfLogsStr { get; set; }
-        //    public decimal? MiddleGirthCm { get; set; }
-        //    public string? MiddleGirthCmStr { get; set; }
-        //    public decimal? LengthCm { get; set; }
-        //    public string? LengthCmStr { get; set; }
-
-        //    // Sawn Timber specific
-        //    public int? NoOfPieces { get; set; }
-        //    public string? NoOfPiecesStr { get; set; }
-        //    public decimal? Width { get; set; }
-        //    public string? WidthStr { get; set; }
-        //    public decimal? Thickness { get; set; }
-        //    public string? ThicknessStr { get; set; }
-
-        //    // Minor Forest Produce specific
-        //    public string? Part { get; set; }
-        //    public int? PlantPartID { get; set; }
-        //}
-
-
         public class ProduceDetailDto
         {
             public long?  ApplicationId { get; set; }
             public long? SpeciesLogId { get; set; } // For updates - null for new entries
             public int SpeciesId { get; set; }
+            public int SpeciesMappingId { get; set; } // Add this
+            public string? SpeciesMappingIdStr { get; set; } // Add this for string parsing
             public int ForestProduceId { get; set; } // Add this
             public bool IsDeleted { get; set; } // For soft delete
 
@@ -232,140 +185,6 @@ namespace OfficerService.DtoModels
             public string? TemporaryId { get; set; } // For frontend mapping
         }
 
-        // New DTOs for source and destination
-        //public class SaveProduceSourceRequestDto
-        //{
-        //    [Required]
-        //    public long ApplicationId { get; set; }
-
-        //    [Required]
-        //    public int SpeciesId { get; set; }
-
-        //    [Required]
-        //    public string RegistrationNo { get; set; } = string.Empty;
-
-        //    // Government Depot Info
-        //    public string? GovernmentDepotName { get; set; }
-        //    public string? GovernmentDepotType { get; set; }
-
-        //    // Common Source Fields
-        //    [Required]
-        //    public int StateId { get; set; }
-
-        //    [Required]
-        //    public int CircleId { get; set; }
-
-        //    [Required]
-        //    public int DivisionId { get; set; }
-
-        //    [Required]
-        //    public int RangeId { get; set; }
-
-        //    [Required]
-        //    public string Address { get; set; } = string.Empty;
-
-        //    public string? PinCode { get; set; }
-
-        //    public string? Latitude { get; set; }
-        //    public string? Longitude { get; set; }
-
-        //    // Place obtained type
-        //    [Required]
-        //    public string PlaceObtained { get; set; } = string.Empty;
-        //}
-
-        //public class SaveDestinationRequestDto
-        //{
-        //    [Required]
-        //    public long ApplicationId { get; set; }
-
-        //    [Required]
-        //    public int SpeciesId { get; set; }
-
-        //    [Required]
-        //    public string RegistrationNo { get; set; } = string.Empty;
-
-        //    // Government Depot Info
-        //    public string? GovernmentDepotName { get; set; }
-        //    public string? GovernmentDepotType { get; set; }
-
-        //    // Common Destination Fields
-        //    [Required]
-        //    public int StateId { get; set; }
-
-        //    [Required]
-        //    public int CircleId { get; set; }
-
-        //    [Required]
-        //    public int DivisionId { get; set; }
-
-        //    [Required]
-        //    public int RangeId { get; set; }
-
-        //    [Required]
-        //    public string Address { get; set; } = string.Empty;
-
-        //    public string? PinCode { get; set; }
-
-        //    // Destination place type
-        //    [Required]
-        //    public string DestinationPlace { get; set; } = string.Empty;
-        //}
-
-        //public class SourceDestinationResponseDto
-        //{
-        //    public bool Success { get; set; }
-        //    public string Message { get; set; } = string.Empty;
-        //    public long? SourceId { get; set; }
-        //    public long? DestinationId { get; set; }
-        //    public int? GovernmentDepotId { get; set; }
-        //    public int? LatLongId { get; set; }
-        //}
-
-        // Update SourceDestinationResponseDto
-
-        // Update SaveProduceSourceRequestDto to include CategoryId
-        //public class SaveProduceSourceRequestDto
-        //{
-        //    [Required]
-        //    public long ApplicationId { get; set; }
-
-        //    [Required]
-        //    public string RegistrationNo { get; set; } = string.Empty;
-
-        //    [Required]
-        //    public int CategoryId { get; set; } // 1 for NOC, 2 for Transit Pass
-
-        //    // Government Depot Info
-        //    public string? GovernmentDepotName { get; set; }
-        //    public string? GovernmentDepotType { get; set; }
-
-        //    // Common Source Fields
-        //    [Required]
-        //    public int StateId { get; set; }
-
-        //    [Required]
-        //    public int CircleId { get; set; }
-
-        //    [Required]
-        //    public int DivisionId { get; set; }
-
-        //    [Required]
-        //    public int RangeId { get; set; }
-
-        //    [Required]
-        //    public string Address { get; set; } = string.Empty;
-
-        //    public string? PinCode { get; set; }
-
-        //    public string? Latitude { get; set; }
-        //    public string? Longitude { get; set; }
-
-        //    // Place obtained type
-        //    [Required]
-        //    public string PlaceObtained { get; set; } = string.Empty;
-        //}
-
         // Update the SaveProduceSourceRequestDto class
         public class SaveProduceSourceRequestDto
         {
@@ -446,15 +265,6 @@ namespace OfficerService.DtoModels
             public string? PinCode { get; set; }
             public string DestinationPlace { get; set; } = string.Empty;
         }
-        //public class SourceDestinationResponseDto
-        //{
-        //    public bool Success { get; set; }
-        //    public string Message { get; set; } = string.Empty;
-        //    public long? SourceId { get; set; }
-        //    public long? DestinationId { get; set; }
-        //    public int? GovernmentDepotId { get; set; }
-        //    public List<int> LatLongIds { get; set; } = new List<int>();
-        //}
 
         public class SourceDestinationResponseDto
         {
@@ -472,21 +282,6 @@ namespace OfficerService.DtoModels
             public ProduceSourceDto? ProduceSource { get; set; }
             public DestinationDto? Destination { get; set; }
         }
-
-        //public class ProduceSourceDto
-        //{
-        //    public string? PlaceObtained { get; set; }
-        //    public string? GovernmentDepotName { get; set; }
-        //    public string? GovernmentDepotType { get; set; }
-        //    public int? StateId { get; set; }
-        //    public int? CircleId { get; set; }
-        //    public int? DivisionId { get; set; }
-        //    public int? RangeId { get; set; }
-        //    public string? Address { get; set; }
-        //    public string? PinCode { get; set; }
-        //    public string? Latitude { get; set; }
-        //    public string? Longitude { get; set; }
-        //}
 
         public class ProduceSourceDto
         {

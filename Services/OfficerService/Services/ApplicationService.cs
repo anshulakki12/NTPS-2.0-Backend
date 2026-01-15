@@ -261,10 +261,7 @@ namespace OfficerService.Services
             }
         }
 
-        private async Task<string> GenerateUniqueRegistrationNoForCategoryAsync(
-    long applicationId,
-    int applicationCategoryId,
-    string stateCode)
+        private async Task<string> GenerateUniqueRegistrationNoForCategoryAsync(long applicationId,int applicationCategoryId,string stateCode)
         {
             try
             {
@@ -385,12 +382,122 @@ namespace OfficerService.Services
             return $"{basePrefix}{nextSequence:D4}";
         }
 
+        //private async Task<long> SaveSpeciesLogAsync(int forestProduceId, string registrationNo, ProduceDetailDto detail, AddProduceDetailRequestDto request)
+        //{
+        //    try
+        //    {
+        //        _logger.LogInformation("Creating species log entry for ForestProduceId: {ForestProduceId}, RegistrationNo: {RegistrationNo}, SpeciesId: {SpeciesId}",
+        //            forestProduceId, registrationNo, detail.SpeciesId);
+
+        //        switch (forestProduceId)
+        //        {
+        //            case 1:  // Round Timber
+        //                var roundTimberLog = new SpeciesLogsRoundTimber
+        //                {
+        //                    RegistrationNo = registrationNo,
+        //                    SpeciesID = detail.SpeciesId,
+        //                    ApplicationId = request?.ApplicationId, // Store ApplicationId
+        //                    ForestProduceId = detail.ForestProduceId, // Add this
+        //                    LogsNo = detail.NoOfLogs ?? 1,
+        //                    Girth = detail.MiddleGirthCm ?? 0.01m,
+        //                    Length = detail.LengthCm ?? 0.01m,
+        //                    Quantity = detail.Quantity ?? 0.01m,
+        //                    Volume = detail.Volume ?? 0.001m,
+        //                    CreatedDate = DateTime.UtcNow
+        //                };
+        //                _context.SpeciesLogsRoundTimbers.Add(roundTimberLog);
+        //                await _context.SaveChangesAsync();
+        //                return roundTimberLog.Id;
+
+        //            case 2: // Bamboo 
+        //                var bambooLog = new SpeciesLogsBamboo
+        //                {
+        //                    RegistrationNo = registrationNo,
+        //                    SpeciesID = detail.SpeciesId,
+        //                    ApplicationId = request?.ApplicationId, // Store ApplicationId
+        //                    ForestProduceId = detail.ForestProduceId, // Add this
+        //                    GirthClass = detail.GirthClass ?? 0.01m,
+        //                    Length = detail.Length ?? 0.01m,
+        //                    Quantity = detail.Quantity ?? 0.01m,
+        //                    Unit = !string.IsNullOrEmpty(detail.Unit) ? detail.Unit[0].ToString() : "n",
+        //                    Volume = detail.Volume ?? 0.001m,
+        //                    CreatedDate = DateTime.UtcNow
+        //                };
+        //                _context.SpeciesLogsBamboos.Add(bambooLog);
+        //                await _context.SaveChangesAsync();
+        //                return bambooLog.Id;
+
+        //            case 3: // Fuelwood
+        //                var fuelwoodLog = new SpeciesLogsFuelwood
+        //                {
+        //                    RegistrationNo = registrationNo,
+        //                    SpeciesID = detail.SpeciesId,
+        //                    ForestProduceId = detail.ForestProduceId, // Add this
+        //                    ApplicationId = request?.ApplicationId, // Store ApplicationId
+        //                    Quantity = detail.Quantity ?? 0.01m,
+        //                    Unit = !string.IsNullOrEmpty(detail.Unit) ? detail.Unit[0].ToString() : "t",
+        //                    CreatedDate = DateTime.UtcNow
+        //                };
+        //                _context.SpeciesLogsFuelwoods.Add(fuelwoodLog);
+        //                await _context.SaveChangesAsync();
+        //                return fuelwoodLog.Id;
+
+        //            case 4: // Minor Forest Produce
+        //                var minorLog = new SpeciesLogsMinorForestProduce
+        //                {
+        //                    RegistrationNo = registrationNo,
+        //                    SpeciesID = detail.SpeciesId,
+        //                    ForestProduceId = detail.ForestProduceId, // Add this
+        //                    ApplicationId = request?.ApplicationId, // Store ApplicationId
+        //                    PlantPartID = detail.PlantPartID ?? 1,
+        //                    Quantity = detail.Quantity ?? 0.01m,
+        //                    Unit = !string.IsNullOrEmpty(detail.Unit) ? detail.Unit[0].ToString() : "k",
+        //                    CreatedDate = DateTime.UtcNow
+        //                };
+        //                _context.SpeciesLogsMinorForestProduces.Add(minorLog);
+        //                await _context.SaveChangesAsync();
+        //                return minorLog.Id;
+
+        //            case 5: // Sawn Timber
+        //                var sawnTimberLog = new SpeciesLogsSawnTimber
+        //                {
+        //                    RegistrationNo = registrationNo,
+        //                    SpeciesID = detail.SpeciesId,
+        //                    ForestProduceId = detail.ForestProduceId, // Add this
+        //                    ApplicationId = request?.ApplicationId, // Store ApplicationId
+        //                    LogsNo = detail.NoOfPieces ?? 1,
+        //                    Girth = 0.01m,
+        //                    Length = detail.LengthCm ?? 0.01m,
+        //                    Width = detail.Width ?? 0.01m,
+        //                    Thickness = detail.Thickness ?? 0.01m,
+        //                    Unit = !string.IsNullOrEmpty(detail.Unit) ? detail.Unit[0].ToString() : "c",
+        //                    Volume = detail.Volume ?? 0.001m,
+        //                    CreatedDate = DateTime.UtcNow
+        //                };
+        //                _context.SpeciesLogsSawnTimbers.Add(sawnTimberLog);
+        //                await _context.SaveChangesAsync();
+        //                return sawnTimberLog.Id;
+
+        //            default:
+        //                throw new Exception($"Unknown forest produce ID: {forestProduceId}");
+        //        }
+        //    }
+        //    catch (Exception ex)
+        //    {
+        //        _logger.LogError(ex, "Error saving species log for ForestProduceId: {ForestProduceId}, RegistrationNo: {RegistrationNo}",
+        //            forestProduceId, registrationNo);
+        //        throw;
+        //    }
+        //}
+
+        // Update the update method as well
+
         private async Task<long> SaveSpeciesLogAsync(int forestProduceId, string registrationNo, ProduceDetailDto detail, AddProduceDetailRequestDto request)
         {
             try
             {
-                _logger.LogInformation("Creating species log entry for ForestProduceId: {ForestProduceId}, RegistrationNo: {RegistrationNo}, SpeciesId: {SpeciesId}",
-                    forestProduceId, registrationNo, detail.SpeciesId);
+                _logger.LogInformation("Creating species log entry for ForestProduceId: {ForestProduceId}, RegistrationNo: {RegistrationNo}, SpeciesId: {SpeciesId}, SpeciesMappingId: {SpeciesMappingId}",
+                    forestProduceId, registrationNo, detail.SpeciesId, detail.SpeciesMappingId);
 
                 switch (forestProduceId)
                 {
@@ -399,8 +506,9 @@ namespace OfficerService.Services
                         {
                             RegistrationNo = registrationNo,
                             SpeciesID = detail.SpeciesId,
-                            ApplicationId = request?.ApplicationId, // Store ApplicationId
-                            ForestProduceId = detail.ForestProduceId, // Add this
+                            SpeciesMappingId = detail.SpeciesMappingId, // Add this
+                            ApplicationId = request?.ApplicationId,
+                            ForestProduceId = detail.ForestProduceId,
                             LogsNo = detail.NoOfLogs ?? 1,
                             Girth = detail.MiddleGirthCm ?? 0.01m,
                             Length = detail.LengthCm ?? 0.01m,
@@ -417,8 +525,9 @@ namespace OfficerService.Services
                         {
                             RegistrationNo = registrationNo,
                             SpeciesID = detail.SpeciesId,
-                            ApplicationId = request?.ApplicationId, // Store ApplicationId
-                            ForestProduceId = detail.ForestProduceId, // Add this
+                            SpeciesMappingId = detail.SpeciesMappingId, // Add this
+                            ApplicationId = request?.ApplicationId,
+                            ForestProduceId = detail.ForestProduceId,
                             GirthClass = detail.GirthClass ?? 0.01m,
                             Length = detail.Length ?? 0.01m,
                             Quantity = detail.Quantity ?? 0.01m,
@@ -435,8 +544,9 @@ namespace OfficerService.Services
                         {
                             RegistrationNo = registrationNo,
                             SpeciesID = detail.SpeciesId,
-                            ForestProduceId = detail.ForestProduceId, // Add this
-                            ApplicationId = request?.ApplicationId, // Store ApplicationId
+                            SpeciesMappingId = detail.SpeciesMappingId, // Add this
+                            ForestProduceId = detail.ForestProduceId,
+                            ApplicationId = request?.ApplicationId,
                             Quantity = detail.Quantity ?? 0.01m,
                             Unit = !string.IsNullOrEmpty(detail.Unit) ? detail.Unit[0].ToString() : "t",
                             CreatedDate = DateTime.UtcNow
@@ -450,8 +560,9 @@ namespace OfficerService.Services
                         {
                             RegistrationNo = registrationNo,
                             SpeciesID = detail.SpeciesId,
-                            ForestProduceId = detail.ForestProduceId, // Add this
-                            ApplicationId = request?.ApplicationId, // Store ApplicationId
+                            SpeciesMappingId = detail.SpeciesMappingId, // Add this
+                            ForestProduceId = detail.ForestProduceId,
+                            ApplicationId = request?.ApplicationId,
                             PlantPartID = detail.PlantPartID ?? 1,
                             Quantity = detail.Quantity ?? 0.01m,
                             Unit = !string.IsNullOrEmpty(detail.Unit) ? detail.Unit[0].ToString() : "k",
@@ -466,8 +577,9 @@ namespace OfficerService.Services
                         {
                             RegistrationNo = registrationNo,
                             SpeciesID = detail.SpeciesId,
-                            ForestProduceId = detail.ForestProduceId, // Add this
-                            ApplicationId = request?.ApplicationId, // Store ApplicationId
+                            SpeciesMappingId = detail.SpeciesMappingId, // Add this
+                            ForestProduceId = detail.ForestProduceId,
+                            ApplicationId = request?.ApplicationId,
                             LogsNo = detail.NoOfPieces ?? 1,
                             Girth = 0.01m,
                             Length = detail.LengthCm ?? 0.01m,
@@ -492,37 +604,6 @@ namespace OfficerService.Services
                 throw;
             }
         }
-
-        //// Add update and delete methods
-        //private async Task<long> UpdateSpeciesLogAsync(int forestProduceId, long speciesLogId, ProduceDetailDto detail)
-        //{
-        //    // Implementation for updating existing species logs
-        //    // Similar to SaveSpeciesLogAsync but with existing ID
-        //    // This would find the existing entity and update its properties
-        //    switch (forestProduceId)
-        //    {
-        //        case 1: // Round Timber
-        //            var roundTimber = await _context.SpeciesLogsRoundTimbers.FindAsync(speciesLogId);
-        //            if (roundTimber != null)
-        //            {
-        //                roundTimber.SpeciesID = detail.SpeciesId;
-        //                roundTimber.LogsNo = detail.NoOfLogs ?? 1;
-        //                roundTimber.Girth = detail.MiddleGirthCm ?? 0.01m;
-        //                roundTimber.Length = detail.LengthCm ?? 0.01m;
-        //                roundTimber.Quantity = detail.Quantity ?? 0.01m;
-        //                roundTimber.Volume = detail.Volume ?? 0.001m;
-        //                _context.SpeciesLogsRoundTimbers.Update(roundTimber);
-        //            }
-        //            break;
-        //            // Implement other cases similarly
-        //    }
-
-        //    await _context.SaveChangesAsync();
-        //    return speciesLogId;
-        //}
-
-
-        // Update the update method as well
         private async Task<long> UpdateSpeciesLogAsync(int forestProduceId, long speciesLogId, ProduceDetailDto detail)
         {
             switch (forestProduceId)
@@ -533,6 +614,7 @@ namespace OfficerService.Services
                     {
                         roundTimber.SpeciesID = detail.SpeciesId;
                         roundTimber.ForestProduceId = detail.ForestProduceId; // Add this
+                        roundTimber.SpeciesMappingId = detail.SpeciesMappingId; // Add this
                         roundTimber.LogsNo = detail.NoOfLogs ?? 1;
                         roundTimber.Girth = detail.MiddleGirthCm ?? 0.01m;
                         roundTimber.Length = detail.LengthCm ?? 0.01m;
@@ -667,6 +749,15 @@ namespace OfficerService.Services
                 else
                 {
                     detail.Volume = 0.001m; // Default value
+                }
+
+                // Parse species mapping ID if provided as string (though it should be int)
+                if (detail.SpeciesMappingId == 0 && !string.IsNullOrEmpty(detail.SpeciesMappingIdStr))
+                {
+                    if (int.TryParse(detail.SpeciesMappingIdStr, out int speciesMappingId))
+                    {
+                        detail.SpeciesMappingId = speciesMappingId;
+                    }
                 }
 
                 // Parse bamboo specific fields
@@ -832,311 +923,6 @@ namespace OfficerService.Services
         {
             return await _applicationRepository.GetApplicationWithSpeciesLogsAsync(applicationId);
         }
-
-        //public async Task<SourceDestinationResponseDto> SaveProduceSourceAsync(SaveProduceSourceRequestDto request)
-        //{
-        //    try
-        //    {
-        //        _logger.LogInformation("Saving produce source for ApplicationId: {ApplicationId}, ForestProduceId: {ForestProduceId}",
-        //            request.ApplicationId, request.SpeciesId);
-
-        //        // Get application to determine state
-        //        var application = await _context.ApplicationMasters
-        //            .FirstOrDefaultAsync(a => a.ApplicationId == request.ApplicationId);
-
-        //        if (application == null)
-        //            throw new Exception("Application not found");
-
-        //        // Determine application category id
-        //        int applicationCategoryId = await DetermineApplicationCategory(
-        //            request.SpeciesId,
-        //            application.StateId ?? throw new Exception("Application StateId is null"));
-
-        //        // Get registration number for this forest produce
-        //        var applicationDetail = await _context.ApplicationDetails
-        //            .FirstOrDefaultAsync(ad => ad.ApplicationId == request.ApplicationId &&
-        //                                      ad.ApplicationCateogryId == applicationCategoryId);
-
-        //        if (applicationDetail == null)
-        //            throw new Exception("Application detail not found. Please save species details first.");
-
-        //        string registrationNo = applicationDetail.RegistrationNo;
-
-        //        if (string.IsNullOrEmpty(registrationNo))
-        //            throw new Exception("Registration number not found");
-
-        //        // Save produce source
-        //        var result = await _applicationRepository.SaveProduceSourceAsync(request, applicationCategoryId);
-
-        //        return result;
-        //    }
-        //    catch (Exception ex)
-        //    {
-        //        _logger.LogError(ex, "Error saving produce source for ApplicationId: {ApplicationId}",
-        //            request.ApplicationId);
-        //        throw;
-        //    }
-        //}
-
-        //public async Task<SourceDestinationResponseDto> SaveDestinationAsync(SaveDestinationRequestDto request)
-        //{
-        //    try
-        //    {
-        //        _logger.LogInformation("Saving destination for ApplicationId: {ApplicationId}, ForestProduceId: {ForestProduceId}",
-        //            request.ApplicationId, request.SpeciesId);
-
-        //        // Get application to determine state
-        //        var application = await _context.ApplicationMasters
-        //            .FirstOrDefaultAsync(a => a.ApplicationId == request.ApplicationId);
-
-        //        if (application == null)
-        //            throw new Exception("Application not found");
-
-        //        // Determine application category id
-        //        int applicationCategoryId = await DetermineApplicationCategory(
-        //            request.SpeciesId,
-        //            application.StateId ?? throw new Exception("Application StateId is null"));
-
-        //        // Get registration number for this forest produce
-        //        var applicationDetail = await _context.ApplicationDetails
-        //            .FirstOrDefaultAsync(ad => ad.ApplicationId == request.ApplicationId &&
-        //                                      ad.ApplicationCateogryId == applicationCategoryId);
-
-        //        if (applicationDetail == null)
-        //            throw new Exception("Application detail not found. Please save species details first.");
-
-        //        string registrationNo = applicationDetail.RegistrationNo;
-
-        //        if (string.IsNullOrEmpty(registrationNo))
-        //            throw new Exception("Registration number not found");
-
-        //        // Save destination
-        //        var result = await _applicationRepository.SaveDestinationAsync(request, applicationCategoryId);
-
-        //        return result;
-        //    }
-        //    catch (Exception ex)
-        //    {
-        //        _logger.LogError(ex, "Error saving destination for ApplicationId: {ApplicationId}",
-        //            request.ApplicationId);
-        //        throw;
-        //    }
-        //}
-
-
-        // Update the ApplicationService.cs SaveProduceSourceAsync method
-        //public async Task<SourceDestinationResponseDto> SaveProduceSourceAsync(SaveProduceSourceRequestDto request)
-        //{
-        //    try
-        //    {
-        //        _logger.LogInformation("Saving produce source for RegistrationNo: {RegistrationNo}, CategoryId: {CategoryId}",
-        //            request.RegistrationNo, request.CategoryId);
-
-        //        using var transaction = await _context.Database.BeginTransactionAsync();
-
-        //        try
-        //        {
-        //            long sourceId = 0;
-        //            int govDepotId = 0;
-        //            List<int> latLongIds = new List<int>();
-
-        //            // Get all registration numbers for this application to save sourceLatLong for all
-        //            var allRegistrations = await _context.ApplicationDetails
-        //                .Where(ad => ad.ApplicationId == request.ApplicationId)
-        //                .Select(ad => new { ad.RegistrationNo, ad.ApplicationCateogryId })
-        //                .ToListAsync();
-
-        //            // 1. Save to appropriate source place table based on category
-        //            if (request.CategoryId == 1) // NOC
-        //            {
-        //                var existingNocSource = await _context.NocSourcePlaces
-        //                    .FirstOrDefaultAsync(nsp => nsp.ApplicationId == request.RegistrationNo);
-
-        //                if (existingNocSource != null)
-        //                {
-        //                    // Update existing record
-        //                    existingNocSource.StateId = request.StateId;
-        //                    existingNocSource.CircleId = request.CircleId;
-        //                    existingNocSource.DivisionId = request.DivisionId;
-        //                    existingNocSource.RangeId = request.RangeId;
-        //                    existingNocSource.Address = request.Address;
-        //                    existingNocSource.PinCode = request.PinCode;
-        //                    existingNocSource.UpdatedDate = DateTime.UtcNow;
-
-        //                    _context.NocSourcePlaces.Update(existingNocSource);
-        //                    sourceId = existingNocSource.SourceId;
-        //                }
-        //                else
-        //                {
-        //                    // Create new record
-        //                    var nocSourcePlace = new NocSourcePlace
-        //                    {
-        //                        ApplicationId = request.RegistrationNo,
-        //                        StateId = request.StateId,
-        //                        CircleId = request.CircleId,
-        //                        DivisionId = request.DivisionId,
-        //                        RangeId = request.RangeId,
-        //                        Address = request.Address,
-        //                        PinCode = request.PinCode,
-        //                        CreatedDate = DateTime.UtcNow
-        //                    };
-
-        //                    _context.NocSourcePlaces.Add(nocSourcePlace);
-        //                    await _context.SaveChangesAsync();
-        //                    sourceId = nocSourcePlace.SourceId;
-        //                }
-        //            }
-        //            else if (request.CategoryId == 2) // Transit Pass
-        //            {
-        //                var existingTpSource = await _context.TpSourcePlaces
-        //                    .FirstOrDefaultAsync(tsp => tsp.ApplicationId == request.RegistrationNo);
-
-        //                if (existingTpSource != null)
-        //                {
-        //                    // Update existing record
-        //                    existingTpSource.StateId = request.StateId;
-        //                    existingTpSource.CircleId = request.CircleId;
-        //                    existingTpSource.DivisionId = request.DivisionId;
-        //                    existingTpSource.RangeId = request.RangeId;
-        //                    existingTpSource.Address = request.Address;
-        //                    existingTpSource.PinCode = request.PinCode;
-        //                    existingTpSource.UpdatedDate = DateTime.UtcNow;
-
-        //                    _context.TpSourcePlaces.Update(existingTpSource);
-        //                    sourceId = existingTpSource.SourceId;
-        //                }
-        //                else
-        //                {
-        //                    // Create new record
-        //                    var tpSourcePlace = new TpSourcePlace
-        //                    {
-        //                        ApplicationId = request.RegistrationNo,
-        //                        StateId = request.StateId,
-        //                        CircleId = request.CircleId,
-        //                        DivisionId = request.DivisionId,
-        //                        RangeId = request.RangeId,
-        //                        Address = request.Address,
-        //                        PinCode = request.PinCode,
-        //                        CreatedDate = DateTime.UtcNow
-        //                    };
-
-        //                    _context.TpSourcePlaces.Add(tpSourcePlace);
-        //                    await _context.SaveChangesAsync();
-        //                    sourceId = tpSourcePlace.SourceId;
-        //                }
-        //            }
-        //            else
-        //            {
-        //                throw new Exception($"Unknown category: {request.CategoryId}");
-        //            }
-
-        //            // 2. Save Government Depot if applicable
-        //            if (request.PlaceObtained == "government_depot" &&
-        //                !string.IsNullOrEmpty(request.GovernmentDepotName))
-        //            {
-        //                var existingGovDepot = await _context.GovernmentDepots
-        //                    .FirstOrDefaultAsync(gd => gd.RegistrationNo == request.RegistrationNo &&
-        //                                              gd.Type == "source");
-
-        //                if (existingGovDepot != null)
-        //                {
-        //                    // Update existing
-        //                    existingGovDepot.DepotName = request.GovernmentDepotName;
-        //                    existingGovDepot.Type = request.GovernmentDepotType;
-        //                    existingGovDepot.SourceType = "web";
-        //                    existingGovDepot.PlaceType = "government";
-        //                    existingGovDepot.UpdatedDate = DateTime.UtcNow;
-
-        //                    _context.GovernmentDepots.Update(existingGovDepot);
-        //                    govDepotId = existingGovDepot.GdId;
-        //                }
-        //                else
-        //                {
-        //                    // Create new
-        //                    var governmentDepot = new GovernmentDepot
-        //                    {
-        //                        RegistrationNo = request.RegistrationNo,
-        //                        DepotName = request.GovernmentDepotName,
-        //                        Type = "source",
-        //                        SourceType = "web",
-        //                        PlaceType = "government",
-        //                        CreatedDate = DateTime.UtcNow
-        //                    };
-
-        //                    _context.GovernmentDepots.Add(governmentDepot);
-        //                    await _context.SaveChangesAsync();
-        //                    govDepotId = governmentDepot.GdId;
-        //                }
-        //            }
-
-        //            // 3. Save Latitude/Longitude for ALL registration numbers of this application
-        //            if (!string.IsNullOrEmpty(request.Latitude) && !string.IsNullOrEmpty(request.Longitude))
-        //            {
-        //                foreach (var reg in allRegistrations)
-        //                {
-        //                    if (string.IsNullOrEmpty(reg.RegistrationNo)) continue;
-
-        //                    var existingLatLong = await _context.SourceLatLongs
-        //                        .FirstOrDefaultAsync(sll => sll.RegistrationNo == reg.RegistrationNo);
-
-        //                    if (existingLatLong != null)
-        //                    {
-        //                        // Update existing
-        //                        existingLatLong.Latitude = request.Latitude;
-        //                        existingLatLong.Longitude = request.Longitude;
-        //                        existingLatLong.UpdatedDate = DateTime.UtcNow;
-
-        //                        _context.SourceLatLongs.Update(existingLatLong);
-        //                        latLongIds.Add(existingLatLong.LatLongId);
-        //                    }
-        //                    else
-        //                    {
-        //                        // Create new
-        //                        var sourceLatLong = new SourceLatLong
-        //                        {
-        //                            RegistrationNo = reg.RegistrationNo,
-        //                            Latitude = request.Latitude,
-        //                            Longitude = request.Longitude,
-        //                            CreatedDate = DateTime.UtcNow
-        //                        };
-
-        //                        _context.SourceLatLongs.Add(sourceLatLong);
-        //                        await _context.SaveChangesAsync();
-        //                        latLongIds.Add(sourceLatLong.LatLongId);
-        //                    }
-        //                }
-        //            }
-
-        //            await transaction.CommitAsync();
-
-        //            return new SourceDestinationResponseDto
-        //            {
-        //                Success = true,
-        //                Message = "Produce source details saved successfully",
-        //                SourceId = sourceId,
-        //                GovernmentDepotId = govDepotId,
-        //                LatLongIds = latLongIds
-        //            };
-        //        }
-        //        catch (Exception ex)
-        //        {
-        //            await transaction.RollbackAsync();
-        //            _logger.LogError(ex, "Error saving produce source for RegistrationNo: {RegistrationNo}",
-        //                request.RegistrationNo);
-        //            throw;
-        //        }
-        //    }
-        //    catch (Exception ex)
-        //    {
-        //        _logger.LogError(ex, "Error in SaveProduceSourceAsync for RegistrationNo: {RegistrationNo}",
-        //            request.RegistrationNo);
-        //        throw;
-        //    }
-        //}
-
-
-
-        // Update the SaveDestinationAsync method similarly
 
         // Update the SaveProduceSourceAsync method
         public async Task<SourceDestinationResponseDto> SaveProduceSourceAsync(SaveProduceSourceRequestDto request)

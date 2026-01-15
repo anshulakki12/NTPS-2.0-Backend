@@ -59,6 +59,10 @@ namespace OfficerService.Models
 
         [Column("Application_Id")]
         public long? ApplicationId { get; set; }
+        [Required(ErrorMessage = "Species Mapping ID is required.")]
+        [Column("Species_Mapping_ID")]
+        [Range(1, int.MaxValue, ErrorMessage = "Species Mapping ID must be greater than zero.")]
+        public int SpeciesMappingId { get; set; } // Add this
         public MasterSpecies? Species { get; set; }
     }
 }
