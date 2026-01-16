@@ -52,6 +52,7 @@ namespace OfficerService.Data
 
         public DbSet<Privateland> Privatelands { get; set; }
         public DbSet<PhotoForestProduce> PhotoForestProduces { get; set; }
+        public DbSet<DocumentMaster> DocumentMasters { get; set; }
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
             // Configure the relationship between OfficerRegistration and OfficerDetails

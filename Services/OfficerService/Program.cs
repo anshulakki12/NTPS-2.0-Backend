@@ -49,6 +49,7 @@ builder.Services.AddScoped<ISpeciesMappingRepository, SpeciesMappingRepository>(
 builder.Services.AddScoped<IApplyTpNocRepository, ApplyTpNocRepository>();
 builder.Services.AddScoped<IGovtDepotRepository, GovtDepotRepository>();
 builder.Services.AddScoped<IApplicationRepository, ApplicationRepository>();
+builder.Services.AddScoped<IDocumentMasterRepository, DocumentMasterRepository>();
 
 
 // Register services
