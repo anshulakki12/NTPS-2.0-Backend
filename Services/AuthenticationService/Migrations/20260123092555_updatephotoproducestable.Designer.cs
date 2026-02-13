@@ -4,6 +4,7 @@ using AuthenticationService.Data;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 #nullable disable
@@ -11,9 +12,11 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace AuthenticationService.Migrations
 {
     [DbContext(typeof(AppDbContext))]
-    partial class AppDbContextModelSnapshot : ModelSnapshot
+    [Migration("20260123092555_updatephotoproducestable")]
+    partial class updatephotoproducestable
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -61,7 +64,7 @@ namespace AuthenticationService.Migrations
 
                     b.HasKey("Id");
 
-                    b.ToTable("Applicant_Resource_Collection", (string)null);
+                    b.ToTable("Applicant_Resource_Collection");
                 });
 
             modelBuilder.Entity("ApplicantAuthenticationService.Models.MasterRoles", b =>
@@ -111,7 +114,7 @@ namespace AuthenticationService.Migrations
 
                     b.HasKey("RoleId");
 
-                    b.ToTable("Master_Roles", (string)null);
+                    b.ToTable("Master_Roles");
                 });
 
             modelBuilder.Entity("ApplicantAuthenticationService.Models.PasswordHistory", b =>
@@ -141,7 +144,7 @@ namespace AuthenticationService.Migrations
 
                     b.HasKey("HistoryId");
 
-                    b.ToTable("Password_History", (string)null);
+                    b.ToTable("Password_History");
                 });
 
             modelBuilder.Entity("AuthenticationService.Models.ApplicantPersonalDetails", b =>
@@ -232,7 +235,7 @@ namespace AuthenticationService.Migrations
 
                     b.HasKey("DetailsId");
 
-                    b.ToTable("Applicant_Personal_Details", (string)null);
+                    b.ToTable("Applicant_Personal_Details");
                 });
 
             modelBuilder.Entity("AuthenticationService.Models.ApplicantRegistration", b =>
@@ -307,7 +310,7 @@ namespace AuthenticationService.Migrations
 
                     b.HasIndex("MasterRolesRoleId");
 
-                    b.ToTable("Applicant_Registration", (string)null);
+                    b.ToTable("Applicant_Registration");
                 });
 
             modelBuilder.Entity("AuthenticationService.Models.VerifyOtp", b =>
@@ -358,7 +361,7 @@ namespace AuthenticationService.Migrations
 
                     b.HasKey("Id");
 
-                    b.ToTable("Verify_Otp", (string)null);
+                    b.ToTable("Verify_Otp");
                 });
 
             modelBuilder.Entity("AuthenticationService.Models.ApplicantRegistration", b =>

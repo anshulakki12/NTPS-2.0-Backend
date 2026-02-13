@@ -100,7 +100,7 @@ namespace AuthenticationService.Controllers
 
         private string GenerateCaptchaText(int length)
         {
-            const string chars = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789";
+            const string chars = "AAAAAAAAAAAAAAAAAAAAAAAA";
             return new string(Enumerable.Repeat(chars, length)
                 .Select(s => s[_random.Next(s.Length)]).ToArray());
         }

@@ -53,6 +53,11 @@ namespace OfficerService.Data
         public DbSet<Privateland> Privatelands { get; set; }
         public DbSet<PhotoForestProduce> PhotoForestProduces { get; set; }
         public DbSet<DocumentMaster> DocumentMasters { get; set; }
+
+        public DbSet<MasterTransportMode> MasterTransportModes { get; set; }
+        public DbSet<TransportDetails> TransportDetails { get; set; }
+        public DbSet<RouteDetails> RouteDetails { get; set; }
+        public DbSet<TpStatusMultiple> TpStatusMultiples { get; set; }
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
             // Configure the relationship between OfficerRegistration and OfficerDetails

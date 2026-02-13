@@ -1,4 +1,5 @@
-﻿using System.ComponentModel.DataAnnotations;
+﻿using OfficerService.DtoModels.Enums;
+using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 
 namespace OfficerService.Models
@@ -15,9 +16,9 @@ namespace OfficerService.Models
         public bool? Status { get; set; }
 
         // Add Application_Status field to track open/in-progress status
-        [Column("Application_Status")]
-        [MaxLength(50)]
-        public string ApplicationStatus { get; set; } = "Open"; // Open, InProgress, Completed, Rejected
+        [Column("ApplicationStatus")]
+        [Obsolete("Use ApplicationStatusId instead")]
+        public string? ApplicationStatus { get; set; }
 
         [Column("Createdby_UserID", TypeName = "nvarchar(50)")]
         public string? CreateByUserId { get; set; }
@@ -52,6 +53,15 @@ namespace OfficerService.Models
 
         [Column("UpdatedBy_UserName")] 
         public string? UpdatedByUserName { get;  set; }
+        [Column("ApplicationStatusId")]
+        public int? ApplicationStatusId { get; set; }
+
+        [NotMapped]
+        public ApplicationStatusEnum? StatusEnum
+        {
+            get => ApplicationStatusId.HasValue ? (ApplicationStatusEnum)ApplicationStatusId.Value : null;
+            set => ApplicationStatusId = (int?)value;
+        }
 
         // Navigation properties
         public ICollection<ApplicationDetail>? ApplicationDetails { get; set; }

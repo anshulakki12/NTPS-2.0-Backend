@@ -1,6 +1,7 @@
 ﻿using Azure.Core;
 using Microsoft.EntityFrameworkCore;
 using OfficerService.Data;
+using OfficerService.DtoModels.Enums;
 using OfficerService.Models;
 using OfficerService.Repositories;
 using static OfficerService.DtoModels.ApplicationDto;
@@ -12,12 +13,14 @@ namespace OfficerService.Services
         private readonly IApplicationRepository _applicationRepository;
         private readonly AppDbContext _context;
         private readonly ILogger<ApplicationService> _logger;
+        private readonly IWebHostEnvironment _environment;
 
-        public ApplicationService(IApplicationRepository applicationRepository, AppDbContext context, ILogger<ApplicationService> logger)
+        public ApplicationService(IApplicationRepository applicationRepository, AppDbContext context, ILogger<ApplicationService> logger, IWebHostEnvironment environment)
         {
             _applicationRepository = applicationRepository;
             _context = context;
             _logger = logger;
+            _environment = environment;
         }
 
         public async Task<ApplicationResponseDto> CreateApplicationAsync(CreateApplicationRequestDto request)
@@ -382,116 +385,7 @@ namespace OfficerService.Services
             return $"{basePrefix}{nextSequence:D4}";
         }
 
-        //private async Task<long> SaveSpeciesLogAsync(int forestProduceId, string registrationNo, ProduceDetailDto detail, AddProduceDetailRequestDto request)
-        //{
-        //    try
-        //    {
-        //        _logger.LogInformation("Creating species log entry for ForestProduceId: {ForestProduceId}, RegistrationNo: {RegistrationNo}, SpeciesId: {SpeciesId}",
-        //            forestProduceId, registrationNo, detail.SpeciesId);
-
-        //        switch (forestProduceId)
-        //        {
-        //            case 1:  // Round Timber
-        //                var roundTimberLog = new SpeciesLogsRoundTimber
-        //                {
-        //                    RegistrationNo = registrationNo,
-        //                    SpeciesID = detail.SpeciesId,
-        //                    ApplicationId = request?.ApplicationId, // Store ApplicationId
-        //                    ForestProduceId = detail.ForestProduceId, // Add this
-        //                    LogsNo = detail.NoOfLogs ?? 1,
-        //                    Girth = detail.MiddleGirthCm ?? 0.01m,
-        //                    Length = detail.LengthCm ?? 0.01m,
-        //                    Quantity = detail.Quantity ?? 0.01m,
-        //                    Volume = detail.Volume ?? 0.001m,
-        //                    CreatedDate = DateTime.UtcNow
-        //                };
-        //                _context.SpeciesLogsRoundTimbers.Add(roundTimberLog);
-        //                await _context.SaveChangesAsync();
-        //                return roundTimberLog.Id;
-
-        //            case 2: // Bamboo 
-        //                var bambooLog = new SpeciesLogsBamboo
-        //                {
-        //                    RegistrationNo = registrationNo,
-        //                    SpeciesID = detail.SpeciesId,
-        //                    ApplicationId = request?.ApplicationId, // Store ApplicationId
-        //                    ForestProduceId = detail.ForestProduceId, // Add this
-        //                    GirthClass = detail.GirthClass ?? 0.01m,
-        //                    Length = detail.Length ?? 0.01m,
-        //                    Quantity = detail.Quantity ?? 0.01m,
-        //                    Unit = !string.IsNullOrEmpty(detail.Unit) ? detail.Unit[0].ToString() : "n",
-        //                    Volume = detail.Volume ?? 0.001m,
-        //                    CreatedDate = DateTime.UtcNow
-        //                };
-        //                _context.SpeciesLogsBamboos.Add(bambooLog);
-        //                await _context.SaveChangesAsync();
-        //                return bambooLog.Id;
-
-        //            case 3: // Fuelwood
-        //                var fuelwoodLog = new SpeciesLogsFuelwood
-        //                {
-        //                    RegistrationNo = registrationNo,
-        //                    SpeciesID = detail.SpeciesId,
-        //                    ForestProduceId = detail.ForestProduceId, // Add this
-        //                    ApplicationId = request?.ApplicationId, // Store ApplicationId
-        //                    Quantity = detail.Quantity ?? 0.01m,
-        //                    Unit = !string.IsNullOrEmpty(detail.Unit) ? detail.Unit[0].ToString() : "t",
-        //                    CreatedDate = DateTime.UtcNow
-        //                };
-        //                _context.SpeciesLogsFuelwoods.Add(fuelwoodLog);
-        //                await _context.SaveChangesAsync();
-        //                return fuelwoodLog.Id;
-
-        //            case 4: // Minor Forest Produce
-        //                var minorLog = new SpeciesLogsMinorForestProduce
-        //                {
-        //                    RegistrationNo = registrationNo,
-        //                    SpeciesID = detail.SpeciesId,
-        //                    ForestProduceId = detail.ForestProduceId, // Add this
-        //                    ApplicationId = request?.ApplicationId, // Store ApplicationId
-        //                    PlantPartID = detail.PlantPartID ?? 1,
-        //                    Quantity = detail.Quantity ?? 0.01m,
-        //                    Unit = !string.IsNullOrEmpty(detail.Unit) ? detail.Unit[0].ToString() : "k",
-        //                    CreatedDate = DateTime.UtcNow
-        //                };
-        //                _context.SpeciesLogsMinorForestProduces.Add(minorLog);
-        //                await _context.SaveChangesAsync();
-        //                return minorLog.Id;
-
-        //            case 5: // Sawn Timber
-        //                var sawnTimberLog = new SpeciesLogsSawnTimber
-        //                {
-        //                    RegistrationNo = registrationNo,
-        //                    SpeciesID = detail.SpeciesId,
-        //                    ForestProduceId = detail.ForestProduceId, // Add this
-        //                    ApplicationId = request?.ApplicationId, // Store ApplicationId
-        //                    LogsNo = detail.NoOfPieces ?? 1,
-        //                    Girth = 0.01m,
-        //                    Length = detail.LengthCm ?? 0.01m,
-        //                    Width = detail.Width ?? 0.01m,
-        //                    Thickness = detail.Thickness ?? 0.01m,
-        //                    Unit = !string.IsNullOrEmpty(detail.Unit) ? detail.Unit[0].ToString() : "c",
-        //                    Volume = detail.Volume ?? 0.001m,
-        //                    CreatedDate = DateTime.UtcNow
-        //                };
-        //                _context.SpeciesLogsSawnTimbers.Add(sawnTimberLog);
-        //                await _context.SaveChangesAsync();
-        //                return sawnTimberLog.Id;
-
-        //            default:
-        //                throw new Exception($"Unknown forest produce ID: {forestProduceId}");
-        //        }
-        //    }
-        //    catch (Exception ex)
-        //    {
-        //        _logger.LogError(ex, "Error saving species log for ForestProduceId: {ForestProduceId}, RegistrationNo: {RegistrationNo}",
-        //            forestProduceId, registrationNo);
-        //        throw;
-        //    }
-        //}
-
         // Update the update method as well
-
         private async Task<long> SaveSpeciesLogAsync(int forestProduceId, string registrationNo, ProduceDetailDto detail, AddProduceDetailRequestDto request)
         {
             try
@@ -1383,6 +1277,449 @@ namespace OfficerService.Services
                 _logger.LogError(ex, "Error getting source/destination details for ApplicationId: {ApplicationId}",
                     applicationId);
                 return null;
+            }
+        }
+
+        // Add these methods to ApplicationService
+        public async Task<VehicleDetailsResponseDto> SaveVehicleDetailsAsync(SaveVehicleDetailsRequestDto request)
+        {
+            using var transaction = await _context.Database.BeginTransactionAsync();
+            try
+            {
+                _logger.LogInformation("Saving vehicle details for RegistrationNo: {RegistrationNo}", request.RegistrationNo);
+
+                // Validate file
+                if (request.VehiclePhoto == null || request.VehiclePhoto.Length == 0)
+                    throw new Exception("Vehicle photo is required.");
+
+                if (request.VehiclePhoto.ContentType != "application/pdf")
+                    throw new Exception("Only PDF files are allowed for vehicle photo.");
+
+                if (request.VehiclePhoto.Length > 2 * 1024 * 1024) // 2MB
+                    throw new Exception("Vehicle photo must be less than 2MB.");
+
+                // Upload vehicle photo
+                var uploadPath = Path.Combine(_environment.WebRootPath, "uploads", "vehicle-photos");
+                if (!Directory.Exists(uploadPath))
+                    Directory.CreateDirectory(uploadPath);
+
+                var fileName = $"{Guid.NewGuid()}_{request.VehiclePhoto.FileName}";
+                var filePath = Path.Combine(uploadPath, fileName);
+
+                using (var stream = new FileStream(filePath, FileMode.Create))
+                {
+                    await request.VehiclePhoto.CopyToAsync(stream);
+                }
+
+                // Save to database
+                var transportDetails = new TransportDetails
+                {
+                    RegistrationNo = request.RegistrationNo,
+                    TransportId = request.TransportId,
+                    DriverName = request.DriverName,
+                    DriverLicenceNo = request.DriverLicenseNo,
+                    VehicleNo = request.VehicleNo,
+                    VehicleOwnerName = request.VehicleOwnerName,
+                    VehiclePhotograph = fileName,
+                    CreatedDate = DateTime.UtcNow,
+                    SourceType = "web"
+                };
+
+                _context.TransportDetails.Add(transportDetails);
+                await _context.SaveChangesAsync();
+                await transaction.CommitAsync();
+
+                var dto = new VehicleDetailsDto
+                {
+                    TPId = transportDetails.TPId,
+                    RegistrationNo = transportDetails.RegistrationNo,
+                    TransportId = transportDetails.TransportId ?? 0,
+                    DriverName = transportDetails.DriverName,
+                    DriverLicenseNo = transportDetails.DriverLicenceNo,
+                    VehicleNo = transportDetails.VehicleNo,
+                    VehicleOwnerName = transportDetails.VehicleOwnerName,
+                    VehiclePhotograph = transportDetails.VehiclePhotograph,
+                    CreatedDate = transportDetails.CreatedDate ?? DateTime.UtcNow
+                };
+
+                return new VehicleDetailsResponseDto
+                {
+                    Success = true,
+                    Message = "Vehicle details saved successfully",
+                    Data = dto
+                };
+            }
+            catch (Exception)
+            {
+                await transaction.RollbackAsync();
+                throw;
+            }
+        }
+
+        public async Task<VehicleDetailsResponseDto> UpdateVehicleDetailsAsync(int tpId, SaveVehicleDetailsRequestDto request)
+        {
+            using var transaction = await _context.Database.BeginTransactionAsync();
+            try
+            {
+                _logger.LogInformation("Updating vehicle details for TPId: {TPId}", tpId);
+
+                var existingDetails = await _context.TransportDetails.FindAsync(tpId);
+                if (existingDetails == null)
+                    throw new Exception("Vehicle details not found.");
+
+                // If new photo is provided
+                if (request.VehiclePhoto != null && request.VehiclePhoto.Length > 0)
+                {
+                    // Validate file
+                    if (request.VehiclePhoto.ContentType != "application/pdf")
+                        throw new Exception("Only PDF files are allowed for vehicle photo.");
+
+                    if (request.VehiclePhoto.Length > 2 * 1024 * 1024)
+                        throw new Exception("Vehicle photo must be less than 2MB.");
+
+                    // Delete old file
+                    if (!string.IsNullOrEmpty(existingDetails.VehiclePhotograph))
+                    {
+                        var oldFilePath = Path.Combine(_environment.WebRootPath, "uploads", "vehicle-photos", existingDetails.VehiclePhotograph);
+                        if (System.IO.File.Exists(oldFilePath))
+                        {
+                            System.IO.File.Delete(oldFilePath);
+                        }
+                    }
+
+                    // Upload new file
+                    var uploadPath = Path.Combine(_environment.WebRootPath, "uploads", "vehicle-photos");
+                    if (!Directory.Exists(uploadPath))
+                        Directory.CreateDirectory(uploadPath);
+
+                    var fileName = $"{Guid.NewGuid()}_{request.VehiclePhoto.FileName}";
+                    var filePath = Path.Combine(uploadPath, fileName);
+
+                    using (var stream = new FileStream(filePath, FileMode.Create))
+                    {
+                        await request.VehiclePhoto.CopyToAsync(stream);
+                    }
+
+                    existingDetails.VehiclePhotograph = fileName;
+                }
+
+                // Update other fields
+                existingDetails.TransportId = request.TransportId;
+                existingDetails.DriverName = request.DriverName;
+                existingDetails.DriverLicenceNo = request.DriverLicenseNo;
+                existingDetails.VehicleNo = request.VehicleNo;
+                existingDetails.VehicleOwnerName = request.VehicleOwnerName;
+                existingDetails.UpdatedDate = DateTime.UtcNow;
+
+                _context.TransportDetails.Update(existingDetails);
+                await _context.SaveChangesAsync();
+                await transaction.CommitAsync();
+
+                var dto = new VehicleDetailsDto
+                {
+                    TPId = existingDetails.TPId,
+                    RegistrationNo = existingDetails.RegistrationNo,
+                    TransportId = existingDetails.TransportId ?? 0,
+                    DriverName = existingDetails.DriverName,
+                    DriverLicenseNo = existingDetails.DriverLicenceNo,
+                    VehicleNo = existingDetails.VehicleNo,
+                    VehicleOwnerName = existingDetails.VehicleOwnerName,
+                    VehiclePhotograph = existingDetails.VehiclePhotograph,
+                    CreatedDate = existingDetails.CreatedDate ?? DateTime.UtcNow
+                };
+
+                return new VehicleDetailsResponseDto
+                {
+                    Success = true,
+                    Message = "Vehicle details updated successfully",
+                    Data = dto
+                };
+            }
+            catch (Exception)
+            {
+                await transaction.RollbackAsync();
+                throw;
+            }
+        }
+
+        public async Task<VehicleDetailsDto> GetVehicleDetailsAsync(string registrationNo)
+        {
+            var vehicleDetails = await _context.TransportDetails
+                .FirstOrDefaultAsync(td => td.RegistrationNo == registrationNo);
+
+            if (vehicleDetails == null)
+                return null;
+
+            return new VehicleDetailsDto
+            {
+                TPId = vehicleDetails.TPId,
+                RegistrationNo = vehicleDetails.RegistrationNo,
+                TransportId = vehicleDetails.TransportId ?? 0,
+                DriverName = vehicleDetails.DriverName,
+                DriverLicenseNo = vehicleDetails.DriverLicenceNo,
+                VehicleNo = vehicleDetails.VehicleNo,
+                VehicleOwnerName = vehicleDetails.VehicleOwnerName,
+                VehiclePhotograph = vehicleDetails.VehiclePhotograph,
+                CreatedDate = vehicleDetails.CreatedDate ?? DateTime.UtcNow
+            };
+        }
+
+        public async Task<bool> DeleteVehicleDetailsAsync(int tpId)
+        {
+            var vehicleDetails = await _context.TransportDetails.FindAsync(tpId);
+            if (vehicleDetails == null)
+                return false;
+
+            // Delete the file
+            if (!string.IsNullOrEmpty(vehicleDetails.VehiclePhotograph))
+            {
+                var filePath = Path.Combine(_environment.WebRootPath, "uploads", "vehicle-photos", vehicleDetails.VehiclePhotograph);
+                if (System.IO.File.Exists(filePath))
+                {
+                    System.IO.File.Delete(filePath);
+                }
+            }
+
+            _context.TransportDetails.Remove(vehicleDetails);
+            await _context.SaveChangesAsync();
+            return true;
+        }
+
+        public async Task<bool> CheckVehicleDetailsExistsAsync(string registrationNo)
+        {
+            return await _context.TransportDetails
+                .AnyAsync(td => td.RegistrationNo == registrationNo);
+        }
+
+        // Add these methods to ApplicationService class
+        public async Task<RouteDetailsResponseDto> SaveRouteDetailsAsync(SaveRouteDetailsRequestDto request)
+        {
+            try
+            {
+                var routeDetails = await _applicationRepository.SaveRouteDetailsAsync(request);
+
+                var dto = new RouteDetailsDto
+                {
+                    Id = routeDetails.Id,
+                    RegistrationNo = routeDetails.RegistrationNo,
+                    StateId = routeDetails.StateId ?? 0,
+                    DistrictId = routeDetails.DistrictId ?? 0,
+                    CreatedDate = routeDetails.CreatedDate,
+                    UpdatedDate = routeDetails.UpdatedDate
+                };
+
+                return new RouteDetailsResponseDto
+                {
+                    Success = true,
+                    Message = "Route details saved successfully",
+                    Data = dto
+                };
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error saving route details for RegistrationNo: {RegistrationNo}", request.RegistrationNo);
+                return new RouteDetailsResponseDto
+                {
+                    Success = false,
+                    Message = $"Error saving route details: {ex.Message}"
+                };
+            }
+        }
+
+        public async Task<RouteDetailsDto> GetRouteDetailsAsync(string registrationNo)
+        {
+            var routeDetails = await _applicationRepository.GetRouteDetailsAsync(registrationNo);
+
+            if (routeDetails == null)
+                return null;
+
+            return new RouteDetailsDto
+            {
+                Id = routeDetails.Id,
+                RegistrationNo = routeDetails.RegistrationNo,
+                StateId = routeDetails.StateId ?? 0,
+                DistrictId = routeDetails.DistrictId ?? 0,
+                CreatedDate = routeDetails.CreatedDate,
+                UpdatedDate = routeDetails.UpdatedDate
+            };
+        }
+
+        public async Task<RouteDetailsResponseDto> UpdateRouteDetailsAsync(int routeId, SaveRouteDetailsRequestDto request)
+        {
+            try
+            {
+                var routeDetails = await _applicationRepository.UpdateRouteDetailsAsync(routeId, request);
+
+                var dto = new RouteDetailsDto
+                {
+                    Id = routeDetails.Id,
+                    RegistrationNo = routeDetails.RegistrationNo,
+                    StateId = routeDetails.StateId ?? 0,
+                    DistrictId = routeDetails.DistrictId ?? 0,
+                    CreatedDate = routeDetails.CreatedDate,
+                    UpdatedDate = routeDetails.UpdatedDate
+                };
+
+                return new RouteDetailsResponseDto
+                {
+                    Success = true,
+                    Message = "Route details updated successfully",
+                    Data = dto
+                };
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error updating route details for RouteId: {RouteId}", routeId);
+                return new RouteDetailsResponseDto
+                {
+                    Success = false,
+                    Message = $"Error updating route details: {ex.Message}"
+                };
+            }
+        }
+
+        public async Task<bool> DeleteRouteDetailsAsync(int routeId)
+        {
+            return await _applicationRepository.DeleteRouteDetailsAsync(routeId);
+        }
+
+        public async Task<bool> CheckRouteDetailsExistsAsync(string registrationNo)
+        {
+            return await _applicationRepository.CheckRouteDetailsExistsAsync(registrationNo);
+        }
+
+        public async Task<UpdateApplicationStatusResponseDto> UpdateApplicationStatusAsync(UpdateApplicationStatusRequestDto request)
+        {
+            using var transaction = await _context.Database.BeginTransactionAsync();
+            try
+            {
+                // 1. Get ApplicationMaster by RegistrationNo
+                var appMaster = await _applicationRepository.GetApplicationMasterByRegistrationNoAsync(request.RegistrationNo);
+                if (appMaster == null)
+                    throw new Exception($"Application not found for registration: {request.RegistrationNo}");
+
+                // 2. Get current step order
+                int? currentStep = await _applicationRepository.GetCurrentStepOrderForRegistrationAsync(request.RegistrationNo);
+                if (currentStep == null) currentStep = 0;
+
+                // 3. Get next officer based on current step and new status
+                ApplicationOfficerAssignmentDto? nextOfficer = null;
+                if (request.NewStatus != ApplicationStatusEnum.Approved &&
+                    request.NewStatus != ApplicationStatusEnum.TPIssued &&
+                    request.NewStatus != ApplicationStatusEnum.NOCDownloadedAndProcessCompleted &&
+                    request.NewStatus != ApplicationStatusEnum.Expired &&
+                    request.NewStatus != ApplicationStatusEnum.NotRecommended)
+                {
+                    // For statuses that need to go to next officer, find the next workflow step
+                    nextOfficer = await _applicationRepository.GetNextOfficerForRegistrationAsync(request.RegistrationNo, currentStep.Value);
+                }
+
+                // 4. Create TpStatusMultiple record
+                var tpStatus = new TpStatusMultiple
+                {
+                    RegistrationNo = request.RegistrationNo,
+                    LoginIdFrom = request.OfficerLoginId,   // current officer
+                    LoginIdTo = nextOfficer?.OfficerLoginId, // next officer (null if final status)
+                    Status = (int)request.NewStatus,
+                    CreatedDate = DateTime.UtcNow,
+                    Remarks = request.Remarks ?? $"Status updated to {request.NewStatus.ToDisplayString()}"
+                };
+                await _applicationRepository.InsertTpStatusMultipleAsync(tpStatus);
+
+                // 5. Update ApplicationMaster status
+                await _applicationRepository.UpdateApplicationMasterStatusAsync(appMaster.ApplicationId, request.NewStatus, request.OfficerLoginId);
+
+                await transaction.CommitAsync();
+
+                return new UpdateApplicationStatusResponseDto
+                {
+                    Success = true,
+                    Message = $"Status updated to {request.NewStatus.ToDisplayString()} successfully.",
+                    Data = new
+                    {
+                        tpStatus.MultipleStatusId,
+                        tpStatus.RegistrationNo,
+                        tpStatus.LoginIdFrom,
+                        tpStatus.LoginIdTo,
+                        tpStatus.Status
+                    }
+                };
+            }
+            catch (Exception ex)
+            {
+                await transaction.RollbackAsync();
+                _logger.LogError(ex, "Error updating status for RegistrationNo: {RegistrationNo}", request.RegistrationNo);
+                return new UpdateApplicationStatusResponseDto
+                {
+                    Success = false,
+                    Message = $"Failed to update status: {ex.Message}"
+                };
+            }
+
+        }
+
+        public async Task<SubmitApplicationResponseDto> SubmitApplicationAsync(SubmitApplicationRequestDto request)
+        {
+            using var transaction = await _context.Database.BeginTransactionAsync();
+            try
+            {
+                // 1. Validate registration exists
+                var applicationDetail = await _context.ApplicationDetails
+                    .FirstOrDefaultAsync(ad => ad.RegistrationNo == request.RegistrationNo);
+                if (applicationDetail == null)
+                    throw new Exception($"Registration number {request.RegistrationNo} not found.");
+
+                // 2. Get officers assigned to this registration
+                var officers = await _applicationRepository.GetOfficersForRegistrationAsync(request.RegistrationNo);
+                var firstOfficer = officers.FirstOrDefault();
+                if (firstOfficer == null)
+                    throw new Exception("No officer found for this registration. Cannot submit.");
+
+                // 3. Build the TpStatusMultiple record
+                var tpStatus = new TpStatusMultiple
+                {
+                    RegistrationNo = request.RegistrationNo,
+                    LoginIdFrom = request.SubmittedByUserId,           // Applicant's LoginId
+                    LoginIdTo = firstOfficer.OfficerLoginId,          // First officer's LoginId
+                    Status = 1,                                       // Status ID 1 = Submitted
+                    CreatedDate = DateTime.UtcNow,
+                    Remarks = "Application submitted for approval."
+                };
+                await _applicationRepository.SaveTpStatusMultipleAsync(tpStatus);
+
+                // 4. Update application master status to "Submitted"
+                await _applicationRepository.UpdateApplicationStatusAsync(
+                    request.ApplicationId,
+                    "Submitted",
+                    request.SubmittedByUserId
+                );
+
+                await transaction.CommitAsync();
+
+                return new SubmitApplicationResponseDto
+                {
+                    Success = true,
+                    Message = "Application submitted successfully.",
+                    Data = new
+                    {
+                        tpStatus.MultipleStatusId,
+                        tpStatus.RegistrationNo,
+                        tpStatus.LoginIdFrom,
+                        tpStatus.LoginIdTo,
+                        tpStatus.Status,
+                        tpStatus.CreatedDate
+                    }
+                };
+            }
+            catch (Exception ex)
+            {
+                await transaction.RollbackAsync();
+                _logger.LogError(ex, "Error submitting application for RegistrationNo: {RegistrationNo}", request.RegistrationNo);
+                return new SubmitApplicationResponseDto
+                {
+                    Success = false,
+                    Message = $"Failed to submit application: {ex.Message}"
+                };
             }
         }
 

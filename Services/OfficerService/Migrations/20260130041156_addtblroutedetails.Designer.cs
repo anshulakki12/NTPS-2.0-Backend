@@ -3,6 +3,7 @@ using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using OfficerService.Data;
 
@@ -11,9 +12,11 @@ using OfficerService.Data;
 namespace OfficerService.Migrations
 {
     [DbContext(typeof(AppDbContext))]
-    partial class AppDbContextModelSnapshot : ModelSnapshot
+    [Migration("20260130041156_addtblroutedetails")]
+    partial class addtblroutedetails
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -90,12 +93,10 @@ namespace OfficerService.Migrations
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<long>("ApplicationId"));
 
                     b.Property<string>("ApplicationStatus")
-                        .HasColumnType("nvarchar(max)")
-                        .HasColumnName("ApplicationStatus");
-
-                    b.Property<int?>("ApplicationStatusId")
-                        .HasColumnType("int")
-                        .HasColumnName("ApplicationStatusId");
+                        .IsRequired()
+                        .HasMaxLength(50)
+                        .HasColumnType("nvarchar(50)")
+                        .HasColumnName("Application_Status");
 
                     b.Property<string>("CreateByUserId")
                         .HasColumnType("nvarchar(50)")
@@ -2236,53 +2237,6 @@ namespace OfficerService.Migrations
                     b.HasKey("SourceId");
 
                     b.ToTable("Tp_source_place");
-                });
-
-            modelBuilder.Entity("OfficerService.Models.TpStatusMultiple", b =>
-                {
-                    b.Property<int>("MultipleStatusId")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("int")
-                        .HasColumnName("Multiple_Status_Id");
-
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("MultipleStatusId"));
-
-                    b.Property<DateTime?>("CreatedDate")
-                        .HasColumnType("datetime2")
-                        .HasColumnName("Created_Date");
-
-                    b.Property<string>("LoginIdFrom")
-                        .HasMaxLength(50)
-                        .HasColumnType("nvarchar(50)")
-                        .HasColumnName("Login_id_from");
-
-                    b.Property<string>("LoginIdTo")
-                        .HasMaxLength(50)
-                        .HasColumnType("nvarchar(50)")
-                        .HasColumnName("Login_id_to");
-
-                    b.Property<string>("RegistrationNo")
-                        .IsRequired()
-                        .HasMaxLength(50)
-                        .HasColumnType("nvarchar(50)")
-                        .HasColumnName("Registration_No");
-
-                    b.Property<string>("Remarks")
-                        .HasMaxLength(500)
-                        .HasColumnType("nvarchar(500)")
-                        .HasColumnName("remarks");
-
-                    b.Property<int?>("Status")
-                        .HasColumnType("int")
-                        .HasColumnName("Status");
-
-                    b.Property<DateTime?>("UpdatedDate")
-                        .HasColumnType("datetime2")
-                        .HasColumnName("Updated_Date");
-
-                    b.HasKey("MultipleStatusId");
-
-                    b.ToTable("TP_Status_Multiple");
                 });
 
             modelBuilder.Entity("OfficerService.Models.TransportDetails", b =>

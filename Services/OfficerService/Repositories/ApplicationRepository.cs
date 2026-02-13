@@ -1,5 +1,6 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using OfficerService.Data;
+using OfficerService.DtoModels.Enums;
 using OfficerService.Models;
 using static OfficerService.DtoModels.ApplicationDto;
 
@@ -1081,6 +1082,280 @@ namespace OfficerService.Repositories
             }
         }
 
+        // Add these methods to ApplicationRepository
+        public async Task<TransportDetails> SaveVehicleDetailsAsync(SaveVehicleDetailsRequestDto request)
+        {
+            // This method is handled in ApplicationService
+            throw new NotImplementedException();
+        }
 
+        public async Task<TransportDetails> UpdateVehicleDetailsAsync(int tpId, SaveVehicleDetailsRequestDto request)
+        {
+            // This method is handled in ApplicationService
+            throw new NotImplementedException();
+        }
+
+        public async Task<TransportDetails> GetVehicleDetailsAsync(string registrationNo)
+        {
+            return await _context.TransportDetails
+                .FirstOrDefaultAsync(td => td.RegistrationNo == registrationNo);
+        }
+
+        public async Task<bool> DeleteVehicleDetailsAsync(int tpId)
+        {
+            var vehicleDetails = await _context.TransportDetails.FindAsync(tpId);
+            if (vehicleDetails == null)
+                return false;
+
+            _context.TransportDetails.Remove(vehicleDetails);
+            await _context.SaveChangesAsync();
+            return true;
+        }
+
+        public async Task<bool> CheckVehicleDetailsExistsAsync(string registrationNo)
+        {
+            return await _context.TransportDetails
+                .AnyAsync(td => td.RegistrationNo == registrationNo);
+        }
+
+        // Add these methods to ApplicationRepository class
+        public async Task<RouteDetails> SaveRouteDetailsAsync(SaveRouteDetailsRequestDto request)
+        {
+            try
+            {
+                // Check if route details already exist for this registration
+                var existingRoute = await _context.RouteDetails
+                    .FirstOrDefaultAsync(rd => rd.RegistrationNo == request.RegistrationNo);
+
+                if (existingRoute != null)
+                {
+                    throw new Exception("Route details already exist for this registration. Use update instead.");
+                }
+
+                var routeDetails = new RouteDetails
+                {
+                    RegistrationNo = request.RegistrationNo,
+                    StateId = request.StateId,
+                    DistrictId = request.DistrictId,
+                    CreatedDate = DateTime.UtcNow
+                };
+
+                _context.RouteDetails.Add(routeDetails);
+                await _context.SaveChangesAsync();
+
+                return routeDetails;
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error saving route details for RegistrationNo: {RegistrationNo}", request.RegistrationNo);
+                throw;
+            }
+        }
+
+        public async Task<RouteDetails?> GetRouteDetailsAsync(string registrationNo)
+        {
+            return await _context.RouteDetails
+                .FirstOrDefaultAsync(rd => rd.RegistrationNo == registrationNo);
+        }
+
+        public async Task<RouteDetails?> UpdateRouteDetailsAsync(int routeId, SaveRouteDetailsRequestDto request)
+        {
+            try
+            {
+                var existingRoute = await _context.RouteDetails.FindAsync(routeId);
+
+                if (existingRoute == null)
+                    throw new Exception("Route details not found.");
+
+                existingRoute.StateId = request.StateId;
+                existingRoute.DistrictId = request.DistrictId;
+                existingRoute.UpdatedDate = DateTime.UtcNow;
+
+                _context.RouteDetails.Update(existingRoute);
+                await _context.SaveChangesAsync();
+
+                return existingRoute;
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error updating route details for RouteId: {RouteId}", routeId);
+                throw;
+            }
+        }
+
+        public async Task<bool> DeleteRouteDetailsAsync(int routeId)
+        {
+            var routeDetails = await _context.RouteDetails.FindAsync(routeId);
+            if (routeDetails == null)
+                return false;
+
+            _context.RouteDetails.Remove(routeDetails);
+            await _context.SaveChangesAsync();
+            return true;
+        }
+
+        public async Task<bool> CheckRouteDetailsExistsAsync(string registrationNo)
+        {
+            return await _context.RouteDetails
+                .AnyAsync(rd => rd.RegistrationNo == registrationNo);
+        }
+
+        public async Task<ApplicationOfficerAssignmentDto?> GetNextOfficerForRegistrationAsync(string registrationNo, int currentStepOrder)
+        {
+            // First get the logs to know which workflow(s) are used
+            var officers = await GetOfficersForRegistrationAsync(registrationNo);
+            // Find the next step after currentStepOrder
+            var nextStep = officers
+                .Where(o => o.StepOrder > currentStepOrder)
+                .OrderBy(o => o.StepOrder)
+                .FirstOrDefault();
+            return nextStep;
+        }
+
+        public async Task<bool> UpdateApplicationMasterStatusAsync(long applicationId, ApplicationStatusEnum newStatus, string updatedBy)
+        {
+            var app = await _context.ApplicationMasters.FindAsync(applicationId);
+            if (app == null) return false;
+
+            app.ApplicationStatusId = (int)newStatus;
+            app.UpdatedDate = DateTime.UtcNow;
+            app.UpdatedByUserId = updatedBy;
+            return await _context.SaveChangesAsync() > 0;
+        }
+
+        public async Task<bool> InsertTpStatusMultipleAsync(TpStatusMultiple statusRecord)
+        {
+            _context.TpStatusMultiples.Add(statusRecord);
+            return await _context.SaveChangesAsync() > 0;
+        }
+
+        public async Task<ApplicationMaster?> GetApplicationMasterByRegistrationNoAsync(string registrationNo)
+        {
+            var appDetail = await _context.ApplicationDetails
+                .FirstOrDefaultAsync(ad => ad.RegistrationNo == registrationNo);
+            if (appDetail == null) return null;
+            return await _context.ApplicationMasters
+                .FirstOrDefaultAsync(am => am.ApplicationId == appDetail.ApplicationId);
+        }
+
+        public async Task<int?> GetCurrentStepOrderForRegistrationAsync(string registrationNo)
+        {
+            // For now, we can determine step order from the latest TP_Status_Multiple record
+            var latestStatus = await _context.TpStatusMultiples
+                .Where(ts => ts.RegistrationNo == registrationNo)
+                .OrderByDescending(ts => ts.CreatedDate)
+                .FirstOrDefaultAsync();
+
+            if (latestStatus == null) return 0; // No status yet → start at step 0
+
+            // Map status to step order (you can customise this mapping)
+            // For simplicity, we assume status ID corresponds to step order, but they are not 1:1.
+            // We need to retrieve the workflow step for this status.
+            // Since we don't have a direct mapping, we can use the officers list to find the current step.
+            var officers = await GetOfficersForRegistrationAsync(registrationNo);
+            var officerForCurrentStatus = officers.FirstOrDefault(o => o.OfficerLoginId == latestStatus.LoginIdTo);
+            return officerForCurrentStatus?.StepOrder;
+        }
+
+        // ------------------------------------------------------------
+        // 1. Get officers (full LINQ query from your original example)
+        // ------------------------------------------------------------
+        public async Task<List<ApplicationOfficerAssignmentDto>> GetOfficersForRegistrationAsync(string registrationNo)
+        {
+            // Union all species log tables
+            var bambooLogs = _context.SpeciesLogsBamboos
+                .Where(l => l.RegistrationNo == registrationNo)
+                .Select(l => new { l.SpeciesMappingId, l.ApplicationId, l.SpeciesID, l.ForestProduceId, l.RegistrationNo });
+
+            var roundLogs = _context.SpeciesLogsRoundTimbers
+                .Where(l => l.RegistrationNo == registrationNo)
+                .Select(l => new { l.SpeciesMappingId, l.ApplicationId, l.SpeciesID, l.ForestProduceId, l.RegistrationNo });
+
+            var sawnLogs = _context.SpeciesLogsSawnTimbers
+                .Where(l => l.RegistrationNo == registrationNo)
+                .Select(l => new { l.SpeciesMappingId, l.ApplicationId, l.SpeciesID, l.ForestProduceId, l.RegistrationNo });
+
+            var fuelwoodLogs = _context.SpeciesLogsFuelwoods
+                .Where(l => l.RegistrationNo == registrationNo)
+                .Select(l => new { l.SpeciesMappingId, l.ApplicationId, l.SpeciesID, l.ForestProduceId, l.RegistrationNo });
+
+            var mfpLogs = _context.SpeciesLogsMinorForestProduces
+                .Where(l => l.RegistrationNo == registrationNo)
+                .Select(l => new { l.SpeciesMappingId, l.ApplicationId, l.SpeciesID, l.ForestProduceId, l.RegistrationNo });
+
+            var allLogs = bambooLogs
+                .Concat(roundLogs)
+                .Concat(sawnLogs)
+                .Concat(fuelwoodLogs)
+                .Concat(mfpLogs);
+
+            var query = from log in allLogs
+                        join am in _context.ApplicationMasters on log.ApplicationId equals am.ApplicationId
+                        join sm in _context.SpeciesMapping on log.SpeciesMappingId equals sm.SpeciesMappingId
+                        join wfs in _context.WorkFlowSteps on sm.WorkFlowId equals wfs.WorkFlowId
+                        join ms in _context.MasterSpecies on log.SpeciesID equals ms.SpeciesID into msJoin
+                        from ms in msJoin.DefaultIfEmpty()
+                        join ml in _context.MasterLevels on wfs.LevelId equals ml.LevelId into mlJoin
+                        from ml in mlJoin.DefaultIfEmpty()
+                        from officer in _context.OfficerRegistrations
+                        where officer.IsActive
+                           && officer.LocationType == wfs.LevelId
+                           && (
+                                  (wfs.LevelId == 1 && officer.LocationId == am.StateId)      // State
+                               || (wfs.LevelId == 4 && officer.LocationId == am.SubDistrictId)// Sub‑District
+                               || (wfs.LevelId == 5 && officer.LocationId == am.DistrictId)   // District
+                              )
+                        join md in _context.MasterDesignations on officer.DesignationId equals md.DesignationId into mdJoin
+                        from md in mdJoin.DefaultIfEmpty()
+                        join mr in _context.MasterRoles on officer.RoleId equals mr.RoleId into mrJoin
+                        from mr in mrJoin.DefaultIfEmpty()
+                        select new ApplicationOfficerAssignmentDto
+                        {
+                            RegistrationNo = log.RegistrationNo,
+                            SpeciesId = log.SpeciesID,
+                            SpeciesName = ms != null ? ms.Name : null,
+                            WorkFlowId = sm.WorkFlowId,
+                            StepOrder = wfs.StepOrder,
+                            LevelId = wfs.LevelId,
+                            LevelName = ml != null ? ml.LevelName : null,
+                            RequiredLocationId = wfs.LevelId == 1 ? am.StateId :
+                                                wfs.LevelId == 4 ? am.SubDistrictId :
+                                                wfs.LevelId == 5 ? am.DistrictId : null,
+                            OfficerLoginId = officer.LoginId,
+                            OfficerId = officer.OfficerId,
+                            OfficerMobile = officer.MobileNo,
+                            DesignationName = md != null ? md.DesignationName : null,
+                            RoleName = mr != null ? mr.RoleName : null
+                        };
+
+            return await query
+                .OrderBy(x => x.SpeciesId)
+                .ThenBy(x => x.StepOrder)
+                .ToListAsync();
+        }
+
+        // ------------------------------------------------------------
+        // 2. Save TpStatusMultiple record
+        // ------------------------------------------------------------
+        public async Task<bool> SaveTpStatusMultipleAsync(TpStatusMultiple status)
+        {
+            _context.TpStatusMultiples.Add(status);
+            return await _context.SaveChangesAsync() > 0;
+        }
+
+        // ------------------------------------------------------------
+        // 3. Update Application Master status
+        // ------------------------------------------------------------
+        public async Task<bool> UpdateApplicationStatusAsync(long applicationId, string status, string updatedBy)
+        {
+            var application = await _context.ApplicationMasters
+                .FirstOrDefaultAsync(a => a.ApplicationId == applicationId);
+            if (application == null) return false;
+
+            application.ApplicationStatus = status;
+            application.UpdatedDate = DateTime.UtcNow;
+            application.UpdatedByUserId = updatedBy;
+            return await _context.SaveChangesAsync() > 0;
+        }
     }
 }

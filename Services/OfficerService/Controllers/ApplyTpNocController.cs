@@ -6,7 +6,10 @@ using OfficerService.DTOs;
 using OfficerService.Models;
 using OfficerService.Repositories;
 using OfficerService.Services;
+using System.Text.RegularExpressions;
+using static Microsoft.EntityFrameworkCore.DbLoggerCategory;
 using static OfficerService.DtoModels.ApplicationDto;
+using static OfficerService.DtoModels.DocumentUploadDto;
 
 namespace OfficerService.Controllers
 {
@@ -19,19 +22,22 @@ namespace OfficerService.Controllers
         private readonly IApplicationService _applicationService;
         private readonly ILogger<ApplyTpNocController> _logger;
         private readonly IApplicationRepository _applicationRepository;
+        private readonly IWebHostEnvironment _environment;
 
         public ApplyTpNocController(
             IApplyTpNocRepository repository,
             AppDbContext context,
             IApplicationService applicationService,
             ILogger<ApplyTpNocController> logger,
-            IApplicationRepository applicationRepository)
+            IApplicationRepository applicationRepository,
+            IWebHostEnvironment environment)
         {
             _repository = repository;
             _context = context;
             _applicationService = applicationService;
             _logger = logger;
             _applicationRepository = applicationRepository;
+            _environment = environment;
         }
 
         [HttpGet("forestproduces/{stateCode}")]
@@ -830,6 +836,1263 @@ namespace OfficerService.Controllers
     }
 };
             return Ok(documents);
+        }
+
+
+        [HttpGet("CheckDocumentExists")]
+        public async Task<IActionResult> CheckDocumentExists([FromQuery] string registrationNo, [FromQuery] string documentTypeId)
+        {
+            try
+            {
+                var exists = await _context.PhotoForestProduces
+                    .AnyAsync(p => p.RegistrationNo == registrationNo && p.DocumentType == documentTypeId);
+
+                return Ok(new DocumentResponse
+                {
+                    Success = true,
+                    Message = "Document check completed",
+                    Data = new { exists }
+                });
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, new DocumentResponse
+                {
+                    Success = false,
+                    Message = $"Error checking document: {ex.Message}"
+                });
+            }
+        }
+
+        [HttpGet("GetExistingDocuments/{applicationId}")]
+        public async Task<IActionResult> GetExistingDocuments(int applicationId, [FromQuery] string registrationNo)
+        {
+            try
+            {
+                var documents = await _context.PhotoForestProduces
+                    .Where(p => p.ApplicationId == applicationId && p.RegistrationNo == registrationNo)
+                    .Select(p => new
+                    {
+                        p.DocumentType,
+                        p.PhotoUpload,
+                        p.OtherDocument
+                    })
+                    .ToListAsync();
+
+                var result = new Dictionary<string, object>();
+                foreach (var doc in documents)
+                {
+                    if (doc.DocumentType == "DOC001")
+                    {
+                        result["DOC001"] = doc.PhotoUpload;
+                    }
+                    else if (doc.DocumentType == "DOC004")
+                    {
+                        result["DOC004"] = doc.OtherDocument;
+                    }
+                }
+
+                return Ok(new DocumentResponse
+                {
+                    Success = true,
+                    Message = "Documents retrieved successfully",
+                    Data = result
+                });
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, new DocumentResponse
+                {
+                    Success = false,
+                    Message = $"Error retrieving documents: {ex.Message}"
+                });
+            }
+        }
+
+        //[HttpPost("AddDocuments")]
+        //public async Task<IActionResult> AddDocuments([FromForm] DocumentDto request)
+        //{
+        //    try
+        //    {
+        //        // Check if document already exists
+        //        var existingDoc = await _context.PhotoForestProduces
+        //            .FirstOrDefaultAsync(p => p.RegistrationNo == request.RegistrationNo
+        //                && p.DocumentType == request.DocumentTypeId);
+
+        //        if (existingDoc != null)
+        //        {
+        //            return BadRequest(new DocumentResponse
+        //            {
+        //                Success = false,
+        //                Message = "Document already exists. Use update instead."
+        //            });
+        //        }
+
+        //        var fileNames = new List<string>();
+        //        var uploadPath = "";
+
+        //        if (request.DocumentTypeId == "DOC001")
+        //        {
+        //            uploadPath = Path.Combine(_environment.WebRootPath, "uploads", "photos");
+
+        //            // Handle multiple files for DOC001
+        //            foreach (var file in request.Files)
+        //            {
+        //                var fileName = $"{Guid.NewGuid()}_{file.FileName}";
+        //                var filePath = Path.Combine(uploadPath, fileName);
+
+        //                using (var stream = new FileStream(filePath, FileMode.Create))
+        //                {
+        //                    await file.CopyToAsync(stream);
+        //                }
+
+        //                fileNames.Add(fileName);
+        //            }
+
+        //            var photoDocument = new PhotoForestProduce
+        //            {
+        //                RegistrationNo = request.RegistrationNo,
+        //                DocumentType = request.DocumentTypeId,
+        //                PhotoUpload = string.Join(",", fileNames),
+        //                ApplicationId = request.ApplicationId,
+        //                CreatedDate = DateTime.Now,
+        //                CategoryId = request.CategoryId
+        //            };
+
+        //            _context.PhotoForestProduces.Add(photoDocument);
+        //        }
+        //        else if (request.DocumentTypeId == "DOC004")
+        //        {
+        //            uploadPath = Path.Combine(_environment.WebRootPath, "uploads", "documents");
+        //            var fileName = $"{Guid.NewGuid()}_{request.File.FileName}";
+        //            var filePath = Path.Combine(uploadPath, fileName);
+
+        //            using (var stream = new FileStream(filePath, FileMode.Create))
+        //            {
+        //                await request.File.CopyToAsync(stream);
+        //            }
+
+        //            var otherDocument = new PhotoForestProduce
+        //            {
+        //                RegistrationNo = request.RegistrationNo,
+        //                DocumentType = request.DocumentTypeId,
+        //                OtherDocument = fileName,
+        //                ApplicationId = request.ApplicationId,
+        //                CreatedDate = DateTime.Now,
+        //                CategoryId = request.CategoryId
+        //            };
+
+        //            _context.PhotoForestProduces.Add(otherDocument);
+        //            fileNames.Add(fileName);
+        //        }
+
+        //        await _context.SaveChangesAsync();
+
+        //        return Ok(new DocumentResponse
+        //        {
+        //            Success = true,
+        //            Message = "Documents added successfully",
+        //            Data = new { fileNames = fileNames.ToArray() }
+        //        });
+        //    }
+        //    catch (Exception ex)
+        //    {
+        //        return StatusCode(500, new DocumentResponse
+        //        {
+        //            Success = false,
+        //            Message = $"Error adding documents: {ex.Message}"
+        //        });
+        //    }
+        //}
+
+        [HttpPost("AddDocuments")]
+        public async Task<IActionResult> AddDocuments([FromForm] DocumentDto request)
+        {
+            try
+            {
+                // Check if document already exists
+                var existingDoc = await _context.PhotoForestProduces
+                    .FirstOrDefaultAsync(p => p.RegistrationNo == request.RegistrationNo
+                        && p.DocumentType == request.DocumentTypeId);
+
+                if (existingDoc != null)
+                {
+                    return BadRequest(new DocumentResponse
+                    {
+                        Success = false,
+                        Message = "Document already exists. Use update instead."
+                    });
+                }
+
+                var fileNames = new List<string>();
+                var uploadPath = "";
+
+                // Get the base path - use WebRootPath if available, otherwise use ContentRootPath
+                string basePath;
+                if (string.IsNullOrEmpty(_environment.WebRootPath))
+                {
+                    // Fallback to ContentRootPath and create wwwroot directory
+                    basePath = Path.Combine(_environment.ContentRootPath, "wwwroot");
+
+                    // Ensure wwwroot directory exists
+                    if (!Directory.Exists(basePath))
+                    {
+                        Directory.CreateDirectory(basePath);
+                    }
+                }
+                else
+                {
+                    basePath = _environment.WebRootPath;
+                }
+
+                if (request.DocumentTypeId == "DOC001")
+                {
+                    uploadPath = Path.Combine(basePath, "uploads", "photos");
+
+                    // Ensure directory exists
+                    if (!Directory.Exists(uploadPath))
+                    {
+                        Directory.CreateDirectory(uploadPath);
+                    }
+
+                    // Handle multiple files for DOC001
+                    if (request.Files != null && request.Files.Count > 0)
+                    {
+                        foreach (var file in request.Files)
+                        {
+                            var fileName = $"{Guid.NewGuid()}_{file.FileName}";
+                            var filePath = Path.Combine(uploadPath, fileName);
+
+                            using (var stream = new FileStream(filePath, FileMode.Create))
+                            {
+                                await file.CopyToAsync(stream);
+                            }
+
+                            fileNames.Add(fileName);
+                        }
+                    }
+                    else
+                    {
+                        return BadRequest(new DocumentResponse
+                        {
+                            Success = false,
+                            Message = "No files provided for DOC001"
+                        });
+                    }
+
+                    var photoDocument = new PhotoForestProduce
+                    {
+                        RegistrationNo = request.RegistrationNo,
+                        DocumentType = request.DocumentTypeId,
+                        PhotoUpload = string.Join(",", fileNames),
+                        ApplicationId = request.ApplicationId,
+                        CreatedDate = DateTime.Now,
+                        CategoryId = request.CategoryId,
+                        SourceType = "web"
+                    };
+
+                    _context.PhotoForestProduces.Add(photoDocument);
+                }
+                else if (request.DocumentTypeId == "DOC004")
+                {
+                    uploadPath = Path.Combine(basePath, "uploads", "documents");
+
+                    // Ensure directory exists
+                    if (!Directory.Exists(uploadPath))
+                    {
+                        Directory.CreateDirectory(uploadPath);
+                    }
+
+                    if (request.File == null || request.File.Length == 0)
+                    {
+                        return BadRequest(new DocumentResponse
+                        {
+                            Success = false,
+                            Message = "No file provided for DOC004"
+                        });
+                    }
+
+                    var fileName = $"{Guid.NewGuid()}_{request.File.FileName}";
+                    var filePath = Path.Combine(uploadPath, fileName);
+
+                    using (var stream = new FileStream(filePath, FileMode.Create))
+                    {
+                        await request.File.CopyToAsync(stream);
+                    }
+
+                    var otherDocument = new PhotoForestProduce
+                    {
+                        RegistrationNo = request.RegistrationNo,
+                        DocumentType = request.DocumentTypeId,
+                        OtherDocument = fileName,
+                        ApplicationId = request.ApplicationId,
+                        CreatedDate = DateTime.Now,
+                        CategoryId = request.CategoryId,
+                        SourceType = "web"
+                    };
+
+                    _context.PhotoForestProduces.Add(otherDocument);
+                    fileNames.Add(fileName);
+                }
+                else
+                {
+                    return BadRequest(new DocumentResponse
+                    {
+                        Success = false,
+                        Message = $"Invalid document type: {request.DocumentTypeId}"
+                    });
+                }
+
+                await _context.SaveChangesAsync();
+
+                return Ok(new DocumentResponse
+                {
+                    Success = true,
+                    Message = "Documents added successfully",
+                    Data = new { fileNames = fileNames.ToArray() }
+                });
+            }
+            catch (Exception ex)
+            {
+                // Log the complete error for debugging
+                Console.WriteLine($"Error adding documents: {ex.Message}");
+                Console.WriteLine($"StackTrace: {ex.StackTrace}");
+
+                return StatusCode(500, new DocumentResponse
+                {
+                    Success = false,
+                    Message = $"Error adding documents: {ex.Message}"
+                });
+            }
+        }
+
+        [HttpPost("UpdateDocuments")]
+        public async Task<IActionResult> UpdateDocuments([FromForm] DocumentDto request)
+        {
+            try
+            {
+                var existingDoc = await _context.PhotoForestProduces
+                    .FirstOrDefaultAsync(p => p.RegistrationNo == request.RegistrationNo
+                        && p.DocumentType == request.DocumentTypeId);
+
+                if (existingDoc == null)
+                {
+                    return BadRequest(new DocumentResponse
+                    {
+                        Success = false,
+                        Message = "Document not found. Use add instead."
+                    });
+                }
+
+                var fileNames = new List<string>();
+                var uploadPath = "";
+
+                if (request.DocumentTypeId == "DOC001")
+                {
+                    uploadPath = Path.Combine(_environment.WebRootPath, "uploads", "photos");
+
+                    // Delete old files
+                    if (!string.IsNullOrEmpty(existingDoc.PhotoUpload))
+                    {
+                        var oldFiles = existingDoc.PhotoUpload.Split(',');
+                        foreach (var oldFile in oldFiles)
+                        {
+                            var oldFilePath = Path.Combine(uploadPath, oldFile.Trim());
+                            if (System.IO.File.Exists(oldFilePath))
+                            {
+                                System.IO.File.Delete(oldFilePath);
+                            }
+                        }
+                    }
+
+                    // Upload new files
+                    foreach (var file in request.Files)
+                    {
+                        var fileName = $"{Guid.NewGuid()}_{file.FileName}";
+                        var filePath = Path.Combine(uploadPath, fileName);
+
+                        using (var stream = new FileStream(filePath, FileMode.Create))
+                        {
+                            await file.CopyToAsync(stream);
+                        }
+
+                        fileNames.Add(fileName);
+                    }
+
+                    existingDoc.PhotoUpload = string.Join(",", fileNames);
+                    existingDoc.UpdatedDate = DateTime.Now;
+                }
+                else if (request.DocumentTypeId == "DOC004")
+                {
+                    uploadPath = Path.Combine(_environment.WebRootPath, "uploads", "documents");
+
+                    // Delete old file
+                    if (!string.IsNullOrEmpty(existingDoc.OtherDocument))
+                    {
+                        var oldFilePath = Path.Combine(uploadPath, existingDoc.OtherDocument);
+                        if (System.IO.File.Exists(oldFilePath))
+                        {
+                            System.IO.File.Delete(oldFilePath);
+                        }
+                    }
+
+                    // Upload new file
+                    var fileName = $"{Guid.NewGuid()}_{request.File.FileName}";
+                    var filePath = Path.Combine(uploadPath, fileName);
+
+                    using (var stream = new FileStream(filePath, FileMode.Create))
+                    {
+                        await request.File.CopyToAsync(stream);
+                    }
+
+                    existingDoc.OtherDocument = fileName;
+                    existingDoc.UpdatedDate = DateTime.Now;
+                    fileNames.Add(fileName);
+                }
+
+                await _context.SaveChangesAsync();
+
+                return Ok(new DocumentResponse
+                {
+                    Success = true,
+                    Message = "Documents updated successfully",
+                    Data = new { fileNames = fileNames.ToArray() }
+                });
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, new DocumentResponse
+                {
+                    Success = false,
+                    Message = $"Error updating documents: {ex.Message}"
+                });
+            }
+        }
+
+        [HttpDelete("DeleteDocument")]
+        public async Task<IActionResult> DeleteDocument([FromQuery] string registrationNo, [FromQuery] string documentTypeId)
+        {
+            try
+            {
+                var document = await _context.PhotoForestProduces
+                    .FirstOrDefaultAsync(p => p.RegistrationNo == registrationNo
+                        && p.DocumentType == documentTypeId);
+
+                if (document == null)
+                {
+                    return NotFound(new DocumentResponse
+                    {
+                        Success = false,
+                        Message = "Document not found"
+                    });
+                }
+
+                // Delete physical files
+                if (documentTypeId == "DOC001" && !string.IsNullOrEmpty(document.PhotoUpload))
+                {
+                    var uploadPath = Path.Combine(_environment.WebRootPath, "uploads", "photos");
+                    var files = document.PhotoUpload.Split(',');
+                    foreach (var file in files)
+                    {
+                        var filePath = Path.Combine(uploadPath, file.Trim());
+                        if (System.IO.File.Exists(filePath))
+                        {
+                            System.IO.File.Delete(filePath);
+                        }
+                    }
+                }
+                else if (documentTypeId == "DOC004" && !string.IsNullOrEmpty(document.OtherDocument))
+                {
+                    var uploadPath = Path.Combine(_environment.WebRootPath, "uploads", "documents");
+                    var filePath = Path.Combine(uploadPath, document.OtherDocument);
+                    if (System.IO.File.Exists(filePath))
+                    {
+                        System.IO.File.Delete(filePath);
+                    }
+                }
+
+                _context.PhotoForestProduces.Remove(document);
+                await _context.SaveChangesAsync();
+
+                return Ok(new DocumentResponse
+                {
+                    Success = true,
+                    Message = "Document deleted successfully"
+                });
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, new DocumentResponse
+                {
+                    Success = false,
+                    Message = $"Error deleting document: {ex.Message}"
+                });
+            }
+        }
+
+        [HttpPost("AddDocument")]
+        public async Task<IActionResult> AddDocument([FromForm] DocumentDto request)
+        {
+            try
+            {
+                // Check if document already exists
+                var existingDoc = await _context.PhotoForestProduces
+                    .FirstOrDefaultAsync(p => p.RegistrationNo == request.RegistrationNo
+                        && p.DocumentType == request.DocumentTypeId);
+
+                if (existingDoc != null)
+                {
+                    return BadRequest(new DocumentResponse
+                    {
+                        Success = false,
+                        Message = "Document already exists. Use update instead."
+                    });
+                }
+
+                var fileNames = new List<string>();
+                var uploadPath = "";
+
+                // Get the base path
+                string basePath;
+                if (string.IsNullOrEmpty(_environment.WebRootPath))
+                {
+                    basePath = Path.Combine(_environment.ContentRootPath, "wwwroot");
+                    if (!Directory.Exists(basePath))
+                    {
+                        Directory.CreateDirectory(basePath);
+                    }
+                }
+                else
+                {
+                    basePath = _environment.WebRootPath;
+                }
+
+                if (request.DocumentTypeId == "DOC001")
+                {
+                    uploadPath = Path.Combine(basePath, "uploads", "photos");
+
+                    // Ensure directory exists
+                    if (!Directory.Exists(uploadPath))
+                    {
+                        Directory.CreateDirectory(uploadPath);
+                    }
+
+                    // Handle multiple files for DOC001
+                    if (request.Files != null && request.Files.Count > 0)
+                    {
+                        foreach (var file in request.Files)
+                        {
+                            var fileName = $"{Guid.NewGuid()}_{file.FileName}";
+                            var filePath = Path.Combine(uploadPath, fileName);
+
+                            using (var stream = new FileStream(filePath, FileMode.Create))
+                            {
+                                await file.CopyToAsync(stream);
+                            }
+
+                            fileNames.Add(fileName);
+                        }
+                    }
+                    else
+                    {
+                        return BadRequest(new DocumentResponse
+                        {
+                            Success = false,
+                            Message = "No files provided for DOC001"
+                        });
+                    }
+
+                    var photoDocument = new PhotoForestProduce
+                    {
+                        RegistrationNo = request.RegistrationNo,
+                        DocumentType = request.DocumentTypeId,
+                        PhotoUpload = string.Join(",", fileNames),
+                        ApplicationId = request.ApplicationId,
+                        CreatedDate = DateTime.Now,
+                        CategoryId = request.CategoryId,
+                        SourceType = "web"
+                    };
+
+                    _context.PhotoForestProduces.Add(photoDocument);
+                }
+                else if (request.DocumentTypeId == "DOC004")
+                {
+                    uploadPath = Path.Combine(basePath, "uploads", "documents");
+
+                    // Ensure directory exists
+                    if (!Directory.Exists(uploadPath))
+                    {
+                        Directory.CreateDirectory(uploadPath);
+                    }
+
+                    if (request.File == null || request.File.Length == 0)
+                    {
+                        return BadRequest(new DocumentResponse
+                        {
+                            Success = false,
+                            Message = "No file provided for DOC004"
+                        });
+                    }
+
+                    var fileName = $"{Guid.NewGuid()}_{request.File.FileName}";
+                    var filePath = Path.Combine(uploadPath, fileName);
+
+                    using (var stream = new FileStream(filePath, FileMode.Create))
+                    {
+                        await request.File.CopyToAsync(stream);
+                    }
+
+                    var otherDocument = new PhotoForestProduce
+                    {
+                        RegistrationNo = request.RegistrationNo,
+                        DocumentType = request.DocumentTypeId,
+                        OtherDocument = fileName,
+                        ApplicationId = request.ApplicationId,
+                        CreatedDate = DateTime.Now,
+                        CategoryId = request.CategoryId,
+                        SourceType = "web"
+                    };
+
+                    _context.PhotoForestProduces.Add(otherDocument);
+                    fileNames.Add(fileName);
+                }
+                else
+                {
+                    return BadRequest(new DocumentResponse
+                    {
+                        Success = false,
+                        Message = $"Invalid document type: {request.DocumentTypeId}"
+                    });
+                }
+
+                await _context.SaveChangesAsync();
+
+                return Ok(new DocumentResponse
+                {
+                    Success = true,
+                    Message = "Document added successfully",
+                    Data = new { fileNames = fileNames.ToArray() }
+                });
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Error adding document: {ex.Message}");
+                Console.WriteLine($"StackTrace: {ex.StackTrace}");
+
+                return StatusCode(500, new DocumentResponse
+                {
+                    Success = false,
+                    Message = $"Error adding document: {ex.Message}"
+                });
+            }
+        }
+
+        [HttpPost("UpdateDocument")]
+        public async Task<IActionResult> UpdateDocument([FromForm] DocumentDto request)
+        {
+            try
+            {
+                var existingDoc = await _context.PhotoForestProduces
+                    .FirstOrDefaultAsync(p => p.RegistrationNo == request.RegistrationNo
+                        && p.DocumentType == request.DocumentTypeId);
+
+                if (existingDoc == null)
+                {
+                    return BadRequest(new DocumentResponse
+                    {
+                        Success = false,
+                        Message = "Document not found. Use add instead."
+                    });
+                }
+
+                var fileNames = new List<string>();
+                var uploadPath = "";
+
+                // Get the base path
+                string basePath;
+                if (string.IsNullOrEmpty(_environment.WebRootPath))
+                {
+                    basePath = Path.Combine(_environment.ContentRootPath, "wwwroot");
+                    if (!Directory.Exists(basePath))
+                    {
+                        Directory.CreateDirectory(basePath);
+                    }
+                }
+                else
+                {
+                    basePath = _environment.WebRootPath;
+                }
+
+                if (request.DocumentTypeId == "DOC001")
+                {
+                    uploadPath = Path.Combine(basePath, "uploads", "photos");
+
+                    // Delete old files
+                    if (!string.IsNullOrEmpty(existingDoc.PhotoUpload))
+                    {
+                        var oldFiles = existingDoc.PhotoUpload.Split(',');
+                        foreach (var oldFile in oldFiles)
+                        {
+                            var oldFilePath = Path.Combine(uploadPath, oldFile.Trim());
+                            if (System.IO.File.Exists(oldFilePath))
+                            {
+                                System.IO.File.Delete(oldFilePath);
+                            }
+                        }
+                    }
+
+                    // Upload new files
+                    if (request.Files != null && request.Files.Count > 0)
+                    {
+                        foreach (var file in request.Files)
+                        {
+                            var fileName = $"{Guid.NewGuid()}_{file.FileName}";
+                            var filePath = Path.Combine(uploadPath, fileName);
+
+                            using (var stream = new FileStream(filePath, FileMode.Create))
+                            {
+                                await file.CopyToAsync(stream);
+                            }
+
+                            fileNames.Add(fileName);
+                        }
+                    }
+
+                    existingDoc.PhotoUpload = string.Join(",", fileNames);
+                    existingDoc.UpdatedDate = DateTime.Now;
+                }
+                else if (request.DocumentTypeId == "DOC004")
+                {
+                    uploadPath = Path.Combine(basePath, "uploads", "documents");
+
+                    // Delete old file
+                    if (!string.IsNullOrEmpty(existingDoc.OtherDocument))
+                    {
+                        var oldFilePath = Path.Combine(uploadPath, existingDoc.OtherDocument);
+                        if (System.IO.File.Exists(oldFilePath))
+                        {
+                            System.IO.File.Delete(oldFilePath);
+                        }
+                    }
+
+                    // Upload new file
+                    if (request.File != null && request.File.Length > 0)
+                    {
+                        var fileName = $"{Guid.NewGuid()}_{request.File.FileName}";
+                        var filePath = Path.Combine(uploadPath, fileName);
+
+                        using (var stream = new FileStream(filePath, FileMode.Create))
+                        {
+                            await request.File.CopyToAsync(stream);
+                        }
+
+                        existingDoc.OtherDocument = fileName;
+                        existingDoc.UpdatedDate = DateTime.Now;
+                        fileNames.Add(fileName);
+                    }
+                }
+
+                await _context.SaveChangesAsync();
+
+                return Ok(new DocumentResponse
+                {
+                    Success = true,
+                    Message = "Document updated successfully",
+                    Data = new { fileNames = fileNames.ToArray() }
+                });
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Error updating document: {ex.Message}");
+                return StatusCode(500, new DocumentResponse
+                {
+                    Success = false,
+                    Message = $"Error updating document: {ex.Message}"
+                });
+            }
+        }
+
+        [HttpPost("add-vehicle-details")]
+        public async Task<IActionResult> AddVehicleDetails([FromForm] SaveVehicleDetailsRequestDto request)
+        {
+            try
+            {
+                _logger.LogInformation("Adding vehicle details for RegistrationNo: {RegistrationNo}", request.RegistrationNo);
+
+                // Validate driver license number
+                //if (!IsValidDriverLicense(request.DriverLicenseNo))
+                //{
+                //    return BadRequest(new VehicleDetailsResponseDto
+                //    {
+                //        Success = false,
+                //        Message = "Invalid driver license number format."
+                //    });
+                //}
+
+                // Validate vehicle number
+                if (!IsValidVehicleNumber(request.VehicleNo))
+                {
+                    return BadRequest(new VehicleDetailsResponseDto
+                    {
+                        Success = false,
+                        Message = "Invalid vehicle number format. Format should be: DL1A1234 or DL12ABC1234"
+                    });
+                }
+
+                // Check if vehicle details already exist for this registration
+                var existingDetails = await _context.TransportDetails
+                    .FirstOrDefaultAsync(td => td.RegistrationNo == request.RegistrationNo);
+
+                if (existingDetails != null)
+                {
+                    return BadRequest(new VehicleDetailsResponseDto
+                    {
+                        Success = false,
+                        Message = "Vehicle details already exist for this registration. Use update instead."
+                    });
+                }
+
+                var result = await _applicationService.SaveVehicleDetailsAsync(request);
+                return Ok(result);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error adding vehicle details for RegistrationNo: {RegistrationNo}", request.RegistrationNo);
+                return BadRequest(new VehicleDetailsResponseDto
+                {
+                    Success = false,
+                    Message = $"Error adding vehicle details: {ex.Message}"
+                });
+            }
+        }
+
+        [HttpPost("update-vehicle-details/{tpId}")]
+        public async Task<IActionResult> UpdateVehicleDetails(int tpId, [FromForm] SaveVehicleDetailsRequestDto request)
+        {
+            try
+            {
+                _logger.LogInformation("Updating vehicle details for TPId: {TPId}", tpId);
+
+                // Validate driver license number
+                if (!IsValidDriverLicense(request.DriverLicenseNo))
+                {
+                    return BadRequest(new VehicleDetailsResponseDto
+                    {
+                        Success = false,
+                        Message = "Invalid driver license number format."
+                    });
+                }
+
+                // Validate vehicle number
+                if (!IsValidVehicleNumber(request.VehicleNo))
+                {
+                    return BadRequest(new VehicleDetailsResponseDto
+                    {
+                        Success = false,
+                        Message = "Invalid vehicle number format. Format should be: DL1A1234 or DL12ABC1234"
+                    });
+                }
+
+                var result = await _applicationService.UpdateVehicleDetailsAsync(tpId, request);
+                return Ok(result);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error updating vehicle details for TPId: {TPId}", tpId);
+                return BadRequest(new VehicleDetailsResponseDto
+                {
+                    Success = false,
+                    Message = $"Error updating vehicle details: {ex.Message}"
+                });
+            }
+        }
+
+        [HttpGet("vehicle-details/{registrationNo}")]
+        public async Task<IActionResult> GetVehicleDetails(string registrationNo)
+        {
+            try
+            {
+                _logger.LogInformation("Getting vehicle details for RegistrationNo: {RegistrationNo}", registrationNo);
+
+                var vehicleDetails = await _context.TransportDetails
+                    .FirstOrDefaultAsync(td => td.RegistrationNo == registrationNo);
+
+                if (vehicleDetails == null)
+                {
+                    return NotFound(new VehicleDetailsResponseDto
+                    {
+                        Success = false,
+                        Message = "Vehicle details not found"
+                    });
+                }
+
+                var dto = new VehicleDetailsDto
+                {
+                    TPId = vehicleDetails.TPId,
+                    RegistrationNo = vehicleDetails.RegistrationNo,
+                    TransportId = vehicleDetails.TransportId ?? 0,
+                    DriverName = vehicleDetails.DriverName,
+                    DriverLicenseNo = vehicleDetails.DriverLicenceNo,
+                    VehicleNo = vehicleDetails.VehicleNo,
+                    VehicleOwnerName = vehicleDetails.VehicleOwnerName,
+                    VehiclePhotograph = vehicleDetails.VehiclePhotograph,
+                    CreatedDate = vehicleDetails.CreatedDate ?? DateTime.UtcNow
+                };
+
+                return Ok(new VehicleDetailsResponseDto
+                {
+                    Success = true,
+                    Message = "Vehicle details retrieved successfully",
+                    Data = dto
+                });
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error getting vehicle details for RegistrationNo: {RegistrationNo}", registrationNo);
+                return BadRequest(new VehicleDetailsResponseDto
+                {
+                    Success = false,
+                    Message = $"Error getting vehicle details: {ex.Message}"
+                });
+            }
+        }
+
+        [HttpGet("check-vehicle-details/{registrationNo}")]
+        public async Task<IActionResult> CheckVehicleDetailsExists(string registrationNo)
+        {
+            try
+            {
+                var exists = await _context.TransportDetails
+                    .AnyAsync(td => td.RegistrationNo == registrationNo);
+
+                return Ok(new
+                {
+                    Success = true,
+                    Data = new { exists }
+                });
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error checking vehicle details for RegistrationNo: {RegistrationNo}", registrationNo);
+                return BadRequest(new
+                {
+                    Success = false,
+                    Message = $"Error checking vehicle details: {ex.Message}"
+                });
+            }
+        }
+
+        [HttpDelete("delete-vehicle-details/{tpId}")]
+        public async Task<IActionResult> DeleteVehicleDetails(int tpId)
+        {
+            try
+            {
+                var vehicleDetails = await _context.TransportDetails.FindAsync(tpId);
+
+                if (vehicleDetails == null)
+                {
+                    return NotFound(new
+                    {
+                        Success = false,
+                        Message = "Vehicle details not found"
+                    });
+                }
+
+                // Delete the vehicle photo file if it exists
+                if (!string.IsNullOrEmpty(vehicleDetails.VehiclePhotograph))
+                {
+                    var uploadPath = Path.Combine(_environment.WebRootPath, "uploads", "vehicle-photos");
+                    var filePath = Path.Combine(uploadPath, vehicleDetails.VehiclePhotograph);
+
+                    if (System.IO.File.Exists(filePath))
+                    {
+                        System.IO.File.Delete(filePath);
+                    }
+                }
+
+                _context.TransportDetails.Remove(vehicleDetails);
+                await _context.SaveChangesAsync();
+
+                return Ok(new
+                {
+                    Success = true,
+                    Message = "Vehicle details deleted successfully"
+                });
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error deleting vehicle details for TPId: {TPId}", tpId);
+                return BadRequest(new
+                {
+                    Success = false,
+                    Message = $"Error deleting vehicle details: {ex.Message}"
+                });
+            }
+        }
+
+        // Helper methods for validation
+        private bool IsValidDriverLicense(string licenseNo)
+        {
+            if (string.IsNullOrEmpty(licenseNo))
+                return false;
+
+            var patterns = new[]
+            {
+        new Regex(@"^(([A-Za-z]{2}[0-9]{2})( )|([A-Za-z]{2}-[0-9]{2}))((19|20)[0-9][0-9])[0-9]{7}$", RegexOptions.IgnoreCase),
+        new Regex(@"^[A-Za-z]{2}\d{14}$", RegexOptions.IgnoreCase),
+        new Regex(@"^[A-Za-z]{2} \d{14}$", RegexOptions.IgnoreCase),
+        new Regex(@"^DL/[A-Z]/[A-Z]{2}/\d{4}/\d{2}-\d{2}$", RegexOptions.IgnoreCase),
+        new Regex(@"^[A-Z]{2}\d{2}[A-Z]\d{11}$", RegexOptions.IgnoreCase),
+        new Regex(@"^[A-Z]/[A-Z]{2}/\d{2}-[A-Z]/\d{6}/\d{4}$", RegexOptions.IgnoreCase),
+        new Regex(@"^\d{2}/\d{4}/\d{4}$", RegexOptions.IgnoreCase)
+    };
+
+            return patterns.Any(pattern => pattern.IsMatch(licenseNo));
+        }
+
+        private bool IsValidVehicleNumber(string vehicleNo)
+        {
+            if (string.IsNullOrEmpty(vehicleNo))
+                return false;
+
+            var pattern = new Regex(@"^[A-Z]{2}[0-9]{1,2}[A-Z]{1,2}[0-9]{4}$", RegexOptions.IgnoreCase);
+            return pattern.IsMatch(vehicleNo);
+        }
+
+        // Add these methods to ApplyTpNocController class
+
+        [HttpPost("save-route-details")]
+        public async Task<IActionResult> SaveRouteDetails([FromBody] SaveRouteDetailsRequestDto request)
+        {
+            try
+            {
+                _logger.LogInformation("Saving route details for RegistrationNo: {RegistrationNo}", request.RegistrationNo);
+
+                // Validate required fields
+                if (string.IsNullOrEmpty(request.RegistrationNo))
+                {
+                    return BadRequest(new RouteDetailsResponseDto
+                    {
+                        Success = false,
+                        Message = "Registration number is required"
+                    });
+                }
+
+                var result = await _applicationService.SaveRouteDetailsAsync(request);
+
+                if (result.Success)
+                    return Ok(result);
+                else
+                    return BadRequest(result);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error saving route details for RegistrationNo: {RegistrationNo}", request.RegistrationNo);
+                return StatusCode(500, new RouteDetailsResponseDto
+                {
+                    Success = false,
+                    Message = $"Internal server error: {ex.Message}"
+                });
+            }
+        }
+
+        [HttpPut("update-route-details/{routeId}")]
+        public async Task<IActionResult> UpdateRouteDetails(int routeId, [FromBody] SaveRouteDetailsRequestDto request)
+        {
+            try
+            {
+                _logger.LogInformation("Updating route details for RouteId: {RouteId}", routeId);
+
+                // Validate required fields
+                if (string.IsNullOrEmpty(request.RegistrationNo))
+                {
+                    return BadRequest(new RouteDetailsResponseDto
+                    {
+                        Success = false,
+                        Message = "Registration number is required"
+                    });
+                }
+
+                var result = await _applicationService.UpdateRouteDetailsAsync(routeId, request);
+
+                if (result.Success)
+                    return Ok(result);
+                else
+                    return BadRequest(result);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error updating route details for RouteId: {RouteId}", routeId);
+                return StatusCode(500, new RouteDetailsResponseDto
+                {
+                    Success = false,
+                    Message = $"Internal server error: {ex.Message}"
+                });
+            }
+        }
+
+        [HttpGet("route-details/{registrationNo}")]
+        public async Task<IActionResult> GetRouteDetails(string registrationNo)
+        {
+            try
+            {
+                _logger.LogInformation("Getting route details for RegistrationNo: {RegistrationNo}", registrationNo);
+
+                var routeDetails = await _applicationService.GetRouteDetailsAsync(registrationNo);
+
+                if (routeDetails == null)
+                {
+                    return NotFound(new RouteDetailsResponseDto
+                    {
+                        Success = false,
+                        Message = "Route details not found"
+                    });
+                }
+
+                return Ok(new RouteDetailsResponseDto
+                {
+                    Success = true,
+                    Message = "Route details retrieved successfully",
+                    Data = routeDetails
+                });
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error getting route details for RegistrationNo: {RegistrationNo}", registrationNo);
+                return StatusCode(500, new RouteDetailsResponseDto
+                {
+                    Success = false,
+                    Message = $"Internal server error: {ex.Message}"
+                });
+            }
+        }
+
+        [HttpGet("check-route-details/{registrationNo}")]
+        public async Task<IActionResult> CheckRouteDetailsExists(string registrationNo)
+        {
+            try
+            {
+                var exists = await _applicationService.CheckRouteDetailsExistsAsync(registrationNo);
+
+                if (exists)
+                {
+                    var routeDetails = await _applicationService.GetRouteDetailsAsync(registrationNo);
+                    return Ok(new
+                    {
+                        Success = true,
+                        Data = new CheckRouteDetailsExistsResponse
+                        {
+                            Exists = true,
+                            Details = routeDetails
+                        }
+                    });
+                }
+
+                return Ok(new
+                {
+                    Success = true,
+                    Data = new CheckRouteDetailsExistsResponse
+                    {
+                        Exists = false,
+                        Details = null
+                    }
+                });
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error checking route details for RegistrationNo: {RegistrationNo}", registrationNo);
+                return StatusCode(500, new RouteDetailsResponseDto
+                {
+                    Success = false,
+                    Message = $"Internal server error: {ex.Message}"
+                });
+            }
+        }
+
+        [HttpDelete("delete-route-details/{routeId}")]
+        public async Task<IActionResult> DeleteRouteDetails(int routeId)
+        {
+            try
+            {
+                var deleted = await _applicationService.DeleteRouteDetailsAsync(routeId);
+
+                if (deleted)
+                {
+                    return Ok(new
+                    {
+                        Success = true,
+                        Message = "Route details deleted successfully"
+                    });
+                }
+
+                return NotFound(new
+                {
+                    Success = false,
+                    Message = "Route details not found"
+                });
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error deleting route details for RouteId: {RouteId}", routeId);
+                return StatusCode(500, new RouteDetailsResponseDto
+                {
+                    Success = false,
+                    Message = $"Internal server error: {ex.Message}"
+                });
+            }
+        }
+
+        [HttpPost("submit-application")]
+        public async Task<IActionResult> SubmitApplication([FromBody] SubmitApplicationRequestDto request)
+        {
+            try
+            {
+                if (request == null)
+                    return BadRequest(new SubmitApplicationResponseDto { Success = false, Message = "Request cannot be null." });
+
+                if (!request.ConsentConfirmed)
+                    return BadRequest(new SubmitApplicationResponseDto { Success = false, Message = "Consent not confirmed." });
+
+                var result = await _applicationService.SubmitApplicationAsync(request);
+                if (result.Success)
+                    return Ok(result);
+                else
+                    return BadRequest(result);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error in SubmitApplication");
+                return StatusCode(500, new SubmitApplicationResponseDto
+                {
+                    Success = false,
+                    Message = $"Internal server error: {ex.Message}"
+                });
+            }
+        }
+
+        [HttpPost("update-application-status")]
+        public async Task<IActionResult> UpdateApplicationStatus([FromBody] UpdateApplicationStatusRequestDto request)
+        {
+            try
+            {
+                if (request == null)
+                    return BadRequest(new UpdateApplicationStatusResponseDto { Success = false, Message = "Request cannot be null." });
+
+                var result = await _applicationService.UpdateApplicationStatusAsync(request);
+                if (result.Success)
+                    return Ok(result);
+                else
+                    return BadRequest(result);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error in UpdateApplicationStatus");
+                return StatusCode(500, new UpdateApplicationStatusResponseDto
+                {
+                    Success = false,
+                    Message = $"Internal server error: {ex.Message}"
+                });
+            }
         }
 
     }

@@ -50,6 +50,7 @@ builder.Services.AddScoped<IApplyTpNocRepository, ApplyTpNocRepository>();
 builder.Services.AddScoped<IGovtDepotRepository, GovtDepotRepository>();
 builder.Services.AddScoped<IApplicationRepository, ApplicationRepository>();
 builder.Services.AddScoped<IDocumentMasterRepository, DocumentMasterRepository>();
+builder.Services.AddScoped<ITransportModeRepository, TransportModeRepository>();
 
 
 // Register services
@@ -224,6 +225,7 @@ app.UseRouting();
 
 // Enable session before authentication
 app.UseSession();
+app.UseStaticFiles();
 
 // Enable authentication and authorization
 app.UseAuthentication();

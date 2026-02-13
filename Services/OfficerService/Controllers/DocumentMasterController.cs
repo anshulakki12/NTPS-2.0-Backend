@@ -153,12 +153,12 @@ namespace OfficerService.Controllers
                 });
             }
         }
+        private class BaseResponse<T>
+        {
+            public bool Success { get; set; }
+            public IEnumerable<DocumentMaster> Data { get; set; }
+            public string Message { get; internal set; }
+        }
     }
 
-    internal class BaseResponse<T>
-    {
-        public bool Success { get; set; }
-        public IEnumerable<DocumentMaster> Data { get; set; }
-        public string Message { get; internal set; }
-    }
 }

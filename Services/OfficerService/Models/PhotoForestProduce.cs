@@ -17,15 +17,19 @@ namespace OfficerService.Models
         [StringLength(50, ErrorMessage = "Registration No cannot exceed 50 characters.")]
         public string RegistrationNo { get; set; } = null!;
 
-        [Required(ErrorMessage = "Photo upload path is required.")]
+        [Required(ErrorMessage = "Document Type is required.")]
+        [Column("Document_Type")]
+        [StringLength(20, ErrorMessage = "Document Type cannot exceed 20 characters.")]
+        public string DocumentType { get; set; } = null!; // DOC001 or DOC004
+
         [Column("Photo_Upload")]
-        [StringLength(150, ErrorMessage = "Photo upload path cannot exceed 150 characters.")]
-        public string PhotoUpload { get; set; } = null!;
+        [StringLength(500, ErrorMessage = "File name cannot exceed 500 characters.")]
+        public string? PhotoUpload { get; set; } = null!; // Comma-separated file names
 
         [Required(ErrorMessage = "Source type is required.")]
         [Column("Source_type")]
         [StringLength(150, ErrorMessage = "Source type cannot exceed 150 characters.")]
-        public string SourceType { get; set; } = null!;
+        public string SourceType { get; set; } = "web"; // Default to "web"
 
         [Required]
         [Column("Created_Date")]
@@ -33,5 +37,14 @@ namespace OfficerService.Models
 
         [Column("Updated_Date")]
         public DateTime? UpdatedDate { get; set; }
+
+        [Column("Is_Active")]
+        public bool IsActive { get; set; } = true;
+        [Column("Other_Document")]
+        public string? OtherDocument { get; set; }
+        [Column("Application_Id")]
+        public int ApplicationId { get; set; }
+        [Column("Category_Id")]
+        public int CategoryId { get; set; }
     }
 }

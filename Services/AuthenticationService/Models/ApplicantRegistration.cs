@@ -54,7 +54,7 @@ namespace AuthenticationService.Models
 
         [Column("UserRole", TypeName = "int")]
         [Range(1, int.MaxValue, ErrorMessage = "Invalid user role.")]
-        public int? UserRole { get; set; } = 1;
+        public int? UserRole { get; set; } = 28;
 
         [Column("LoginSource", TypeName = "nvarchar(20)")]
         [StringLength(20, ErrorMessage = "Login source cannot exceed 20 characters.")]

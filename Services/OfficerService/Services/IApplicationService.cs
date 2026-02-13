@@ -23,6 +23,18 @@ namespace OfficerService.Services
         Task<SourceDestinationResponseDto> SaveProduceSourceAsync(SaveProduceSourceRequestDto request);
         Task<SourceDestinationResponseDto> SaveDestinationAsync(SaveDestinationRequestDto request);
         Task<SourceDestinationDetailsDto?> GetSourceDestinationDetailsAsync(long applicationId, int forestProduceId);
+        Task<VehicleDetailsResponseDto> SaveVehicleDetailsAsync(SaveVehicleDetailsRequestDto request);
+        Task<VehicleDetailsResponseDto> UpdateVehicleDetailsAsync(int tpId, SaveVehicleDetailsRequestDto request);
+        Task<VehicleDetailsDto> GetVehicleDetailsAsync(string registrationNo);
+        Task<bool> DeleteVehicleDetailsAsync(int tpId);
+        Task<bool> CheckVehicleDetailsExistsAsync(string registrationNo);
+        Task<RouteDetailsResponseDto> SaveRouteDetailsAsync(SaveRouteDetailsRequestDto request);
+        Task<RouteDetailsDto> GetRouteDetailsAsync(string registrationNo);
+        Task<RouteDetailsResponseDto> UpdateRouteDetailsAsync(int routeId, SaveRouteDetailsRequestDto request);
+        Task<bool> DeleteRouteDetailsAsync(int routeId);
+        Task<bool> CheckRouteDetailsExistsAsync(string registrationNo);
+        Task<SubmitApplicationResponseDto> SubmitApplicationAsync(SubmitApplicationRequestDto request);
+        Task<UpdateApplicationStatusResponseDto> UpdateApplicationStatusAsync(UpdateApplicationStatusRequestDto request);
 
     }
 }

@@ -3,6 +3,7 @@ using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using OfficerService.Data;
 
@@ -11,9 +12,11 @@ using OfficerService.Data;
 namespace OfficerService.Migrations
 {
     [DbContext(typeof(AppDbContext))]
-    partial class AppDbContextModelSnapshot : ModelSnapshot
+    [Migration("20260129092923_addtbltransportdetails")]
+    partial class addtbltransportdetails
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -90,12 +93,10 @@ namespace OfficerService.Migrations
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<long>("ApplicationId"));
 
                     b.Property<string>("ApplicationStatus")
-                        .HasColumnType("nvarchar(max)")
-                        .HasColumnName("ApplicationStatus");
-
-                    b.Property<int?>("ApplicationStatusId")
-                        .HasColumnType("int")
-                        .HasColumnName("ApplicationStatusId");
+                        .IsRequired()
+                        .HasMaxLength(50)
+                        .HasColumnType("nvarchar(50)")
+                        .HasColumnName("Application_Status");
 
                     b.Property<string>("CreateByUserId")
                         .HasColumnType("nvarchar(50)")
@@ -1590,42 +1591,6 @@ namespace OfficerService.Migrations
                     b.ToTable("Role_Permissions");
                 });
 
-            modelBuilder.Entity("OfficerService.Models.RouteDetails", b =>
-                {
-                    b.Property<int>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("int")
-                        .HasColumnName("ID");
-
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
-
-                    b.Property<DateTime?>("CreatedDate")
-                        .HasColumnType("datetime2")
-                        .HasColumnName("Created_Date");
-
-                    b.Property<int>("DistrictId")
-                        .HasColumnType("int")
-                        .HasColumnName("District_Id");
-
-                    b.Property<string>("RegistrationNo")
-                        .IsRequired()
-                        .HasMaxLength(50)
-                        .HasColumnType("nvarchar(50)")
-                        .HasColumnName("Registration_No");
-
-                    b.Property<int>("StateId")
-                        .HasColumnType("int")
-                        .HasColumnName("State_Id");
-
-                    b.Property<DateTime?>("UpdatedDate")
-                        .HasColumnType("datetime2")
-                        .HasColumnName("Updated_Date");
-
-                    b.HasKey("Id");
-
-                    b.ToTable("Route_Details");
-                });
-
             modelBuilder.Entity("OfficerService.Models.SourceLatLong", b =>
                 {
                     b.Property<int>("LatLongId")
@@ -2238,53 +2203,6 @@ namespace OfficerService.Migrations
                     b.ToTable("Tp_source_place");
                 });
 
-            modelBuilder.Entity("OfficerService.Models.TpStatusMultiple", b =>
-                {
-                    b.Property<int>("MultipleStatusId")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("int")
-                        .HasColumnName("Multiple_Status_Id");
-
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("MultipleStatusId"));
-
-                    b.Property<DateTime?>("CreatedDate")
-                        .HasColumnType("datetime2")
-                        .HasColumnName("Created_Date");
-
-                    b.Property<string>("LoginIdFrom")
-                        .HasMaxLength(50)
-                        .HasColumnType("nvarchar(50)")
-                        .HasColumnName("Login_id_from");
-
-                    b.Property<string>("LoginIdTo")
-                        .HasMaxLength(50)
-                        .HasColumnType("nvarchar(50)")
-                        .HasColumnName("Login_id_to");
-
-                    b.Property<string>("RegistrationNo")
-                        .IsRequired()
-                        .HasMaxLength(50)
-                        .HasColumnType("nvarchar(50)")
-                        .HasColumnName("Registration_No");
-
-                    b.Property<string>("Remarks")
-                        .HasMaxLength(500)
-                        .HasColumnType("nvarchar(500)")
-                        .HasColumnName("remarks");
-
-                    b.Property<int?>("Status")
-                        .HasColumnType("int")
-                        .HasColumnName("Status");
-
-                    b.Property<DateTime?>("UpdatedDate")
-                        .HasColumnType("datetime2")
-                        .HasColumnName("Updated_Date");
-
-                    b.HasKey("MultipleStatusId");
-
-                    b.ToTable("TP_Status_Multiple");
-                });
-
             modelBuilder.Entity("OfficerService.Models.TransportDetails", b =>
                 {
                     b.Property<int>("TPId")
@@ -2324,10 +2242,6 @@ namespace OfficerService.Migrations
                     b.Property<int>("TransportId")
                         .HasColumnType("int")
                         .HasColumnName("Transport_Id");
-
-                    b.Property<DateTime?>("UpdatedDate")
-                        .HasColumnType("datetime2")
-                        .HasColumnName("Updated_Date");
 
                     b.Property<string>("VehicleLoadingCertificate")
                         .HasMaxLength(200)

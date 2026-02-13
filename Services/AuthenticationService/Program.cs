@@ -91,6 +91,7 @@ using (var scope = app.Services.CreateScope())
 
 app.UseCors("AllowAngular");
 app.UseRouting();
+app.UseStaticFiles();
 app.UseSession();
 app.UseAuthentication();
 app.UseAuthorization();

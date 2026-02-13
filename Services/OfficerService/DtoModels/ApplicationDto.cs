@@ -1,4 +1,5 @@
-﻿using System.ComponentModel.DataAnnotations;
+﻿using OfficerService.DtoModels.Enums;
+using System.ComponentModel.DataAnnotations;
 
 namespace OfficerService.DtoModels
 {
@@ -330,6 +331,128 @@ namespace OfficerService.DtoModels
             public int ApplicationCategoryId { get; set; }
             public string CategoryName { get; set; } = string.Empty;
             public DateTime? CreatedDate { get; set; }
+        }
+
+        public class SaveVehicleDetailsRequestDto
+        {
+            public string RegistrationNo { get; set; }
+            public int TransportId { get; set; }
+            public string DriverName { get; set; }
+            public string DriverLicenseNo { get; set; }
+            public string VehicleNo { get; set; }
+            public string VehicleOwnerName { get; set; }
+            public IFormFile VehiclePhoto { get; set; }
+        }
+
+        public class VehicleDetailsResponseDto
+        {
+            public bool Success { get; set; }
+            public string Message { get; set; }
+            public VehicleDetailsDto Data { get; set; }
+        }
+
+        public class VehicleDetailsDto
+        {
+            public int TPId { get; set; }
+            public string RegistrationNo { get; set; }
+            public int TransportId { get; set; }
+            public string DriverName { get; set; }
+            public string DriverLicenseNo { get; set; }
+            public string VehicleNo { get; set; }
+            public string VehicleOwnerName { get; set; }
+            public string VehiclePhotograph { get; set; }
+            public DateTime CreatedDate { get; set; }
+        }
+
+        // Add to ApplicationDto class
+        public class SaveRouteDetailsRequestDto
+        {
+            [Required]
+            public string RegistrationNo { get; set; } = string.Empty;
+
+            [Required]
+            public int StateId { get; set; }
+
+            [Required]
+            public int DistrictId { get; set; }
+
+            public int? ApplicationId { get; set; }
+            public int? CategoryId { get; set; }
+        }
+
+        public class RouteDetailsResponseDto
+        {
+            public bool Success { get; set; }
+            public string Message { get; set; } = string.Empty;
+            public RouteDetailsDto? Data { get; set; }
+        }
+
+        public class RouteDetailsDto
+        {
+            public int Id { get; set; }
+            public string RegistrationNo { get; set; } = string.Empty;
+            public int StateId { get; set; }
+            public int DistrictId { get; set; }
+            public DateTime? CreatedDate { get; set; }
+            public DateTime? UpdatedDate { get; set; }
+        }
+
+        public class CheckRouteDetailsExistsResponse
+        {
+            public bool Exists { get; set; }
+            public RouteDetailsDto? Details { get; set; }
+        }
+
+        public class SubmitApplicationRequestDto
+        {
+            public long ApplicationId { get; set; }
+            public string RegistrationNo { get; set; }
+            public int CategoryId { get; set; }
+            public string SubmittedByUserId { get; set; }
+            public string SubmittedByUserName { get; set; }
+            public DateTime SubmissionDate { get; set; }
+            public bool ConsentConfirmed { get; set; }
+            // Optionally include full form data for audit
+        }
+
+        public class SubmitApplicationResponseDto
+        {
+            public bool Success { get; set; }
+            public string Message { get; set; }
+            public object Data { get; set; }
+        }
+
+        // DTO already defined in the user's query – keep it in appropriate namespace
+        public class ApplicationOfficerAssignmentDto
+        {
+            public string RegistrationNo { get; set; }
+            public int SpeciesId { get; set; }
+            public string SpeciesName { get; set; }
+            public int WorkFlowId { get; set; }
+            public int StepOrder { get; set; }
+            public int LevelId { get; set; }
+            public string LevelName { get; set; }
+            public long? RequiredLocationId { get; set; }
+            public string OfficerLoginId { get; set; }
+            public int OfficerId { get; set; }
+            public string OfficerMobile { get; set; }
+            public string DesignationName { get; set; }
+            public string RoleName { get; set; }
+        }
+        public class UpdateApplicationStatusRequestDto
+        {
+            public string RegistrationNo { get; set; }
+            public ApplicationStatusEnum NewStatus { get; set; }
+            public string OfficerLoginId { get; set; }        // current officer (Login_id_from)
+            public string? Remarks { get; set; }
+            public string? FullStatus { get; set; }           // optional detailed description
+        }
+
+        public class UpdateApplicationStatusResponseDto
+        {
+            public bool Success { get; set; }
+            public string Message { get; set; }
+            public object Data { get; set; }
         }
     }
 }
